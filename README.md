@@ -72,3 +72,42 @@ src/
 | 글자    | 24 / 20 / 16 / 12   | `text-title`, `text-heading`, `text-body`, `text-caption`         |
 | 모서리  | 10 / 15 / 20 / 25   | `rounded-chip`, `rounded-button`, `rounded-card`, `rounded-popup` |
 | 앱 폭   | 402px               | `max-w-app`                                                       |
+
+## 공통 컴포넌트
+
+개발 서버에서 `/dev/components`로 들어가면 전체 미리보기를 볼 수 있습니다. (배포 빌드에는 포함되지 않음)
+
+| 컴포넌트                         | 위치                 | 용도                                              |
+| -------------------------------- | -------------------- | ------------------------------------------------- |
+| `Screen`                         | `layout/Screen`      | 화면 기본 틀: 상단 내비 / 본문 / 하단 고정 버튼   |
+| `TopNav`, `TopNavTextButton`     | `layout/TopNav`      | 뒤로가기 + 오른쪽 버튼 (모두 건너뛰기 등)         |
+| `PageTitle`                      | `layout/PageTitle`   | 진행 막대 + 제목 + 설명                           |
+| `TabLayout`, `BottomNav`         | `layout/`            | 하단 탭 (도감 / 홈 / 성찰하기)                    |
+| `Button`                         | `ui/Button`          | `primary` · `secondary` · `text`                  |
+| `OptionList`, `MultiOptionList`  | `ui/OptionList`      | 동그라미 선택지 (하나 / 여러 개)                  |
+| `ChoiceChipGroup`                | `ui/ChoiceChipGroup` | 2열 선택 버튼 (거리 · 시간 · 예산)                |
+| `TextField`                      | `ui/TextField`       | 제목 + 입력창 (지우기 버튼)                       |
+| `ProgressBar`                    | `ui/ProgressBar`     | 질문 진행 막대                                    |
+| `InfoTable`                      | `ui/InfoTable`       | 회색 카드 "이름 : 값" 표                          |
+| `Modal`, `ConfirmDialog`         | `ui/`                | 팝업 바탕, [아니오 / 예] 확인 팝업                |
+| `FlowerIcon`, `FlowerSilhouette` | `ui/`                | 도감 꽃 아이콘, 흐릿한 꽃 실루엣                  |
+| 아이콘                           | `components/icons`   | 뒤로가기, 지우기, 하단 탭 아이콘 (`currentColor`) |
+
+```tsx
+<Screen
+  header={<TopNav right={<TopNavTextButton onClick={skipAll}>모두 건너뛰기</TopNavTextButton>} />}
+  bottom={
+    <>
+      <Button onClick={next}>다음</Button>
+      <Button variant="secondary" onClick={skip}>
+        건너뛰기
+      </Button>
+    </>
+  }
+>
+  <PageTitle className="pt-[15px]" progress={{ current: 1 }} title="지금 기분은 어떤가요?" />
+  <OptionList options={MOOD_OPTIONS} value={mood} onChange={setMood} />
+</Screen>
+```
+
+선택지 목록과 기본값은 `src/constants/options.ts`, 조건 타입은 `src/types/condition.ts`에 있습니다.
