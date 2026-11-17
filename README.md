@@ -19,6 +19,10 @@
 
 ## 시작하기
 
+Node.js 24 사용을 권장합니다(`.nvmrc`: 24.11.0). 현재 의존성은 Node.js 22.22.0 이상이 필요합니다.
+
+Windows에서는 `미리보기.cmd`로 `/home`을 열 수 있습니다. 바탕화면 작업본에는 시스템 Node를 변경하지 않는 로컬 Node 24가 함께 준비되어 있습니다.
+
 ```bash
 npm install
 cp .env.example .env   # 필요한 값 채우기
@@ -58,6 +62,24 @@ src/
 
 - import는 `@/` 별칭을 사용합니다. 예: `import { PATHS } from '@/constants/paths'`
 - 화면 이동 경로는 `src/constants/paths.ts`의 `PATHS`를 사용합니다.
+
+## 01 · 02 화면 개발
+
+`/home`에서 홈 → 외출 조건 → 맞춤 미션 → 수행 → 후기 흐름을 확인할 수 있습니다. 온보딩·도감·성찰 화면은 각 담당자의 라우트를 유지합니다.
+
+- `/home/resume`: 목업으로 저장된 미션 이어하기
+- `/outing/conditions/mood`: 외출 조건 4단계 입력 시작
+- `/missions`: 조건에 맞는 목업 추천
+- `/missions/active`: 현재 수행 중인 미션
+- `/outing/review/note`: 한 줄 후기
+
+화면은 `src/features/outings`, 원본 피그마 에셋은 `src/assets/outings`, 상태는 `src/stores/outingStore.ts`에 있습니다. 버튼·선택지·입력창·진행 막대·정보 표·팝업과 화면 틀은 공통 UI를 재사용합니다. 스타일은 공통 `@theme` 색상·폰트 토큰과 `lt-` 범위 CSS를 사용합니다.
+
+백엔드 연결 전 데이터는 전부 목업입니다. 추천 미션, 장소, 지도는 외부 API 키 없이 표시되며 실제 위치 권한을 요청하지 않습니다. 수행 상태와 후기는 Zustand persist의 `letit-outings-mock` 키에 저장되므로 새로고침해도 유지됩니다. 초기화가 필요하면 브라우저 개발자 도구의 Application → Local Storage에서 이 키를 삭제하고 새로고침하세요.
+
+온보딩 기본값은 공통 `useUserDefaultsStore`를 참조합니다. 기본값 안내에서 건너뛴 거리·시간·예산·에너지를 이 값으로 채웁니다. API 연결 시 `mockData.ts`와 스토어의 저장 동작을 교체할 수 있습니다.
+
+가상 상태 표시줄은 피그마 비교용입니다. 앱이 자체 상태 표시줄을 제공하면 `OutingFlow`의 `showMockStatusBar={false}`로 숨길 수 있습니다. 하단에는 safe-area 여백을 적용했습니다.
 
 ## 디자인 토큰
 

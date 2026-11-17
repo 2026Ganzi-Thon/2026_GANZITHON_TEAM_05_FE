@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Option } from '@/types/condition'
 import { cn } from '@/utils/cn'
 
@@ -18,10 +19,12 @@ interface OptionItemProps {
   checked: boolean
   multiple?: boolean
   onClick: () => void
+  /** 원본 피그마 에셋처럼 별도의 선택 표시를 사용하는 화면 */
+  indicator?: ReactNode
 }
 
 /** 선택지 한 줄. 선택되면 동그라미가 채워지고 글자가 진해진다. */
-export function OptionItem({ label, checked, multiple, onClick }: OptionItemProps) {
+export function OptionItem({ label, checked, multiple, onClick, indicator }: OptionItemProps) {
   return (
     <button
       type="button"
@@ -30,7 +33,7 @@ export function OptionItem({ label, checked, multiple, onClick }: OptionItemProp
       onClick={onClick}
       className="flex w-full items-center gap-[15px] p-[5px] text-left"
     >
-      <CheckCircle checked={checked} />
+      {indicator ?? <CheckCircle checked={checked} />}
       <span
         className={cn('text-body', checked ? 'font-semibold text-ink' : 'font-medium text-ink/50')}
       >
