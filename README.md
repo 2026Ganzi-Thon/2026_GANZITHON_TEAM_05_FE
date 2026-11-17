@@ -37,7 +37,7 @@ npm run dev
 
 ```
 src/
-├─ app/            App, 라우터, Provider, 앱 프레임
+├─ app/            App, 라우터(routes/), Provider, 앱 프레임, 접근 제어(guards)
 ├─ apis/           API 요청 함수
 ├─ assets/         이미지 · 아이콘 (피그마 에셋)
 ├─ components/
@@ -111,3 +111,41 @@ src/
 ```
 
 선택지 목록과 기본값은 `src/constants/options.ts`, 조건 타입은 `src/types/condition.ts`에 있습니다.
+
+## 00 온보딩
+
+| 화면              | 주소                          | 파일                                       |
+| ----------------- | ----------------------------- | ------------------------------------------ |
+| 시작              | `/onboarding`                 | `pages/onboarding/OnboardingStartPage.tsx` |
+| 회원가입          | `/signup`                     | `pages/onboarding/SignupPage.tsx`          |
+| 로그인            | `/login`                      | `pages/onboarding/LoginPage.tsx`           |
+| 기본값 설문 01~04 | `/onboarding/survey/1` ~ `/4` | `pages/onboarding/SurveyPage.tsx`          |
+| 기본값 설정 안내  | `/onboarding/defaults`        | `pages/onboarding/SurveyDefaultsPage.tsx`  |
+
+라우트는 `src/app/routes/onboardingRoutes.tsx`에 있습니다.
+
+### 화면 접근 규칙
+
+`AppFrame`의 `AuthGate`(`src/app/guards.tsx`)가 주소와 사용자 상태를 비교해 맞지 않으면 알맞은 화면으로 보냅니다. 라우트마다 감쌀 필요가 없고, 새 화면을 추가하면 자동으로 "설문 후" 영역이 됩니다.
+
+| 사용자 상태         | 열리는 화면                                      |
+| ------------------- | ------------------------------------------------ |
+| 로그인 전           | 시작 · 회원가입 · 로그인                         |
+| 로그인 후 · 설문 전 | 기본값 설문 · 안내                               |
+| 설문 후             | 그 밖의 모든 화면 (홈, 외출, 미션, 성찰, 도감 …) |
+
+`/dev/`로 시작하는 주소는 상태와 상관없이 열립니다.
+
+### 개발할 때 화면 여는 법
+
+`/home` 등을 열려면 회원가입과 설문을 한 번 거쳐야 합니다. `/onboarding` → "Letit 시작하기" → 아무 아이디 · 비밀번호로 가입 → 설문에서 "다음" 4번 → "시작하기". 같은 주소(예: `localhost:5173`)에서는 한 번만 하면 유지됩니다.
+
+### 데이터 (API 연결 전 목업)
+
+| 내용                                 | 스토어                    | 저장 위치 · 키                          |
+| ------------------------------------ | ------------------------- | --------------------------------------- |
+| 로그인 상태 · 계정                   | `useAuthStore`            | localStorage `letit-auth`               |
+| 온보딩 기본값 (외출 조건에서 재사용) | `useUserDefaultsStore`    | localStorage `letit-user-defaults`      |
+| 설문 중 고른 값                      | `useOnboardingDraftStore` | sessionStorage `letit-onboarding-draft` |
+
+처음 상태로 되돌리려면 개발자 도구 Application에서 위 키를 지우고 새로고침하세요. API를 연결할 때는 각 스토어 안의 동작만 요청으로 바꾸면 됩니다.
