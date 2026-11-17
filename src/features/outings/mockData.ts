@@ -166,7 +166,7 @@ export const missions: Mission[] = [
   {
     id: 'cafe',
     title: '한산한 카페에서 15분 쉬기',
-    description: '사람이 적은 카페에서 음료를 마셔봐요',
+    description: '사람이 적은 카페에서 음료를 마셔요',
     level: 3,
     steps: [...outsideSteps, '카페 도착하기', '음료와 함께 15분 쉬기', '집으로 돌아오기'],
     distance: '도보 7분',

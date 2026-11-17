@@ -401,6 +401,7 @@
   align-items: center;
   padding: 5px;
   min-height: 35px;
+  flex-shrink: 0;
 }
 .lt-step-number {
   display: grid;
@@ -545,6 +546,9 @@
   flex-direction: column;
   gap: 20px;
 }
+.lt-place-step-preview .lt-step-card {
+  margin-top: -5px;
+}
 .lt-place-step-preview .lt-hint {
   margin-top: 0;
 }
@@ -586,7 +590,10 @@
   font-size: 20px;
   font-weight: 600;
 }
-.lt-place-options > button > span:not(.lt-place-number) {
+.lt-place-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
   color: var(--lt-muted);
 }
 .lt-field {
@@ -670,6 +677,10 @@
 .lt-location-skeletons {
   height: 540px;
 }
+.lt-location-skeletons > .lt-card {
+  gap: 10px;
+  flex-shrink: 0;
+}
 .lt-skeleton-map {
   width: 100%;
   height: 200px;
@@ -699,7 +710,7 @@
   position: absolute;
   inset: 0;
   background: white;
-  z-index: 10;
+  z-index: 45;
 }
 .lt-modal {
   border: 0;
@@ -941,7 +952,10 @@
   color: var(--lt-muted);
 }
 .lt-day.is-empty {
-  color: white;
+  color: transparent;
+}
+.lt-day.is-upcoming:not(.is-empty) {
+  color: rgb(48 58 80 / 20%);
 }
 .lt-calendar-marker {
   width: 24px;
@@ -963,6 +977,7 @@
 .lt-chart-counts {
   margin-bottom: 20px;
   color: #4e5968;
+  font-weight: 600;
 }
 .lt-chart-counts span,
 .lt-chart-labels span {
@@ -1014,10 +1029,6 @@
   border-radius: 30px;
   background: transparent;
 }
-.lt-saved-note {
-  padding: 5px;
-  color: var(--lt-muted);
-}
 .lt-page-frame {
   height: 100%;
   min-height: 0;
@@ -1037,9 +1048,13 @@
   top: 50px;
   height: 55px;
   width: 100%;
+  padding-right: 25px;
 }
 .lt-feature-topnav > button {
   margin-left: -1.25px;
+}
+.lt-feature-topnav > button:last-child:not(:first-child) {
+  transform: translateY(2.5px);
 }
 .lt-heading h1,
 .lt-heading p,
@@ -1060,6 +1075,12 @@
 }
 .lt-info-rows > dl {
   gap: 20px 25px;
+}
+.lt-info-rows--spacious > dl {
+  row-gap: 25px;
+}
+.lt-home nav[aria-label='하단 메뉴'] {
+  bottom: max(20px, env(safe-area-inset-bottom));
 }
 .lt-condition-chip [role='radio'] {
   font-weight: 600;

@@ -1,5 +1,6 @@
 import { Fragment, useState } from 'react'
 import BottomNav from '@/components/layout/BottomNav'
+import { cn } from '@/utils/cn'
 import { assets, calendarAssets } from './assets'
 import { Button, Card, InfoRows, StatusBar } from './components'
 import { missionById } from './mockData'
@@ -26,6 +27,14 @@ export function HomeScreen({
   const dayCount = new Date(year, month, 0).getDate()
   const weeks = Math.ceil((firstDay + dayCount) / 7)
   const completed = state.records.filter((r) => r.completed).length
+  const successCounts = [2, 3, 2, 1, 0]
+  state.records
+    .filter((record) => record.completed)
+    .forEach((record) => {
+      successCounts[missionById(record.missionId).level] += 1
+    })
+  const largestCount = Math.max(...successCounts)
+  const mostSuccessfulLevel = successCounts.indexOf(largestCount)
   const latest = state.records.at(-1)
   const savedTitle = state.savedMissions[0]
     ? missionById(state.savedMissions[0].missionId).title.replace('집 앞 ', '')
@@ -94,20 +103,6 @@ export function HomeScreen({
                 <Button onClick={onResume}>자세히 알아보기</Button>
               </Card>
             )}
-            {latest && (
-              <Card title="오늘의 미션을 기록했어요" description={latest.title}>
-                <InfoRows
-                  rows={[
-                    [
-                      latest.completed ? '완료한 미션' : '완료한 단계',
-                      latest.completed ? '1개' : `${latest.checked.length}개`,
-                    ],
-                    ['외출 후 기분', latest.mood ?? '선택 안 함'],
-                  ]}
-                />
-                {latest.note && <p className="lt-saved-note">{latest.note}</p>}
-              </Card>
-            )}
           </section>
           <div className="lt-divider" />
           <section className="lt-home-section" id="lt-collection">
@@ -169,7 +164,11 @@ export function HomeScreen({
                         const value = week * 7 + day - firstDay + 1
                         return (
                           <span
-                            className={`lt-day${value <= 0 || value > dayCount ? 'is-empty' : ''}`}
+                            className={cn(
+                              'lt-day',
+                              (value <= 0 || value > dayCount) && 'is-empty',
+                              monthOffset === 0 && value >= 20 && 'is-upcoming',
+                            )}
                             key={day}
                           >
                             {value <= 0 || value > dayCount ? '0' : value}
@@ -191,6 +190,7 @@ export function HomeScreen({
             </Card>
             <Card title="처음과 최근의 미션">
               <InfoRows
+                spacious
                 rows={[
                   ['10월 28일', '창문 열고 바깥 공기 쐬기'],
                   [latest ? '9월 1일' : '11월 11일', latest?.title ?? '집 앞 편의점 다녀오기'],
@@ -200,18 +200,27 @@ export function HomeScreen({
             <Card title="단계별 성공 기록">
               <div className="lt-chart">
                 <div className="lt-chart-counts">
-                  {[2, 3, 2 + completed, 1, 0].map((count, i) => (
-                    <span key={i}>{count}회</span>
+                  {successCounts.map((count, i) => (
+                    <span className="lt-trim" key={i}>
+                      {count}회
+                    </span>
                   ))}
                 </div>
                 <div className="lt-chart-bars">
-                  {[64, 96, 64, 32, 5].map((height, i) => (
-                    <span key={i} style={{ height }} className={i === 1 ? 'is-active' : ''} />
+                  {successCounts.map((count, i) => (
+                    <span
+                      key={i}
+                      style={{ height: count ? (count / largestCount) * 96 : 5 }}
+                      className={i === mostSuccessfulLevel ? 'is-active' : ''}
+                    />
                   ))}
                 </div>
                 <div className="lt-chart-labels">
                   {[0, 1, 2, 3, 4].map((i) => (
-                    <span key={i} className={i === 1 ? 'is-active' : ''}>
+                    <span
+                      key={i}
+                      className={cn('lt-trim', i === mostSuccessfulLevel && 'is-active')}
+                    >
                       {i}단계
                     </span>
                   ))}

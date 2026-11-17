@@ -7,6 +7,7 @@ import SharedScreen from '@/components/layout/Screen'
 import PageTitle from '@/components/layout/PageTitle'
 import TopNav, { TopNavTextButton } from '@/components/layout/TopNav'
 import { useId, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { cn } from '@/utils/cn'
 import { assets } from './assets'
 import type { Place } from './types'
 
@@ -35,7 +36,15 @@ export function StatusBar() {
     </div>
   )
 }
-export function TopBar({ onBack, onSkip }: { onBack: () => void; onSkip?: () => void }) {
+export function TopBar({
+  onBack,
+  onSkip,
+  onStop,
+}: {
+  onBack: () => void
+  onSkip?: () => void
+  onStop?: () => void
+}) {
   return (
     <div className="lt-topbar">
       <StatusBar />
@@ -43,7 +52,15 @@ export function TopBar({ onBack, onSkip }: { onBack: () => void; onSkip?: () => 
         className="lt-feature-topnav"
         onBack={onBack}
         right={
-          onSkip ? <TopNavTextButton onClick={onSkip}>모두 건너뛰기</TopNavTextButton> : undefined
+          onSkip ? (
+            <TopNavTextButton onClick={onSkip}>
+              <span className="lt-trim">모두 건너뛰기</span>
+            </TopNavTextButton>
+          ) : onStop ? (
+            <TopNavTextButton onClick={onStop}>
+              <span className="lt-trim">미션 그만하기</span>
+            </TopNavTextButton>
+          ) : undefined
         }
       />
     </div>
@@ -55,12 +72,14 @@ export function Page({
   footer,
   onBack,
   onSkip,
+  onStop,
   nodeId,
 }: {
   children: ReactNode
   footer?: ReactNode
   onBack: () => void
   onSkip?: () => void
+  onStop?: () => void
   nodeId: string
 }) {
   return (
@@ -69,7 +88,7 @@ export function Page({
         key={nodeId}
         frameClassName="lt-screen"
         className="lt-scroll"
-        header={<TopBar onBack={onBack} onSkip={onSkip} />}
+        header={<TopBar onBack={onBack} onSkip={onSkip} onStop={onStop} />}
         bottom={footer}
         bottomClassName="lt-footer-host"
       >
@@ -89,9 +108,7 @@ export function Footer({
   compact?: boolean
 }) {
   return (
-    <footer
-      className={`lt-footer${row ? 'lt-footer--row' : ''}${compact ? 'lt-footer--compact' : ''}`}
-    >
+    <footer className={cn('lt-footer', row && 'lt-footer--row', compact && 'lt-footer--compact')}>
       {children}
     </footer>
   )
@@ -158,7 +175,7 @@ export function Choices({
 }) {
   return (
     <div
-      className={`lt-choices${large ? 'lt-choices--large' : ''}`}
+      className={cn('lt-choices', large && 'lt-choices--large')}
       role={multiple ? 'group' : 'radiogroup'}
       aria-label={label}
     >
@@ -191,10 +208,16 @@ export function NumberedSteps({
 }) {
   return (
     <Card title={title} className="lt-step-card">
-      <ol className={`lt-numbered${compact ? 'lt-numbered--compact' : ''}`}>
+      <ol
+        className={cn('lt-numbered', compact && 'lt-numbered--compact')}
+        tabIndex={compact ? 0 : undefined}
+        aria-label={compact ? '미션 단계 미리보기' : undefined}
+      >
         {steps.map((step, i) => (
           <li className={checked && !checked.includes(i) ? 'is-faded' : ''} key={step}>
-            <span className="lt-step-number">{i + 1}</span>
+            <span className="lt-step-number">
+              <span className="lt-trim">{i + 1}</span>
+            </span>
             <span className="lt-trim">{step}</span>
           </li>
         ))}
@@ -214,7 +237,7 @@ export function MissionChecks({
   return (
     <div className="lt-mission-checks" role="group" aria-label="미션 수행 단계">
       {steps.map((step, i) => (
-        <label className={`lt-mission-check${checked.includes(i) ? 'is-checked' : ''}`} key={step}>
+        <label className={cn('lt-mission-check', checked.includes(i) && 'is-checked')} key={step}>
           <input type="checkbox" checked={checked.includes(i)} onChange={() => onToggle(i)} />
           {checked.includes(i) ? (
             <img src={assets.stepChecked} alt="" />
@@ -227,9 +250,18 @@ export function MissionChecks({
     </div>
   )
 }
-export function InfoRows({ rows }: { rows: [string, string][] }) {
+export function InfoRows({
+  rows,
+  spacious = false,
+}: {
+  rows: [string, string][]
+  spacious?: boolean
+}) {
   return (
-    <InfoTable className="lt-info-rows" rows={rows.map(([label, value]) => ({ label, value }))} />
+    <InfoTable
+      className={cn('lt-info-rows', spacious && 'lt-info-rows--spacious')}
+      rows={rows.map(([label, value]) => ({ label, value }))}
+    />
   )
 }
 
@@ -269,7 +301,7 @@ export function MockMap({
   onSelect?: (index: number) => void
 }) {
   return (
-    <div className={`lt-map${park ? 'lt-map--park' : ''}`} aria-label="주변 장소 목업 지도">
+    <div className={cn('lt-map', park && 'lt-map--park')} aria-label="주변 장소 목업 지도">
       <div className="lt-map-crop">
         <img className="lt-map-image" src={assets.map} alt="서울 강남구의 주변 장소 지도" />
       </div>
@@ -278,21 +310,21 @@ export function MockMap({
       </div>
       <img className="lt-map-dot" src={assets.locationDot} alt="현재 위치" />
       <button
-        className={`lt-map-marker lt-map-marker--one${selected === 0 ? 'is-selected' : ''}`}
+        className={cn('lt-map-marker lt-map-marker--one', selected === 0 && 'is-selected')}
         onClick={() => onSelect?.(0)}
         aria-label="첫 번째 장소 선택"
         type="button"
       >
-        1
+        <span className="lt-trim">1</span>
       </button>
       {twoPlaces && (
         <button
-          className={`lt-map-marker lt-map-marker--two${selected === 1 ? 'is-selected' : ''}`}
+          className={cn('lt-map-marker lt-map-marker--two', selected === 1 && 'is-selected')}
           onClick={() => onSelect?.(1)}
           aria-label="두 번째 장소 선택"
           type="button"
         >
-          2
+          <span className="lt-trim">2</span>
         </button>
       )}
     </div>

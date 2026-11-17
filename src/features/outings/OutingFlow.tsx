@@ -4,6 +4,7 @@ import ChoiceChipGroup from '@/components/ui/ChoiceChipGroup'
 import { PATHS } from '@/constants/paths'
 import { useOutingStore, type OutingSession } from '@/stores/outingStore'
 import { useUserDefaultsStore } from '@/stores/userDefaultsStore'
+import { cn } from '@/utils/cn'
 import { OUTING_SCREEN_PATHS } from './navigation'
 import { resolveOutingDefaults } from './defaults'
 import { createOutingRecord } from './records'
@@ -317,7 +318,7 @@ export default function OutingFlow({ screen: route, showMockStatusBar = true }: 
     }
     if (modal === 'save') {
       saveProgress()
-      saveRecord()
+      go('summary')
     }
     if (modal === 'change') {
       setMissionId(candidateId)
@@ -376,6 +377,7 @@ export default function OutingFlow({ screen: route, showMockStatusBar = true }: 
                   onClick={() => {
                     setMissionId(saved.missionId)
                     setChecked(saved.checked)
+                    setResumed(true)
                     setModal('stop')
                   }}
                 >
@@ -511,6 +513,7 @@ export default function OutingFlow({ screen: route, showMockStatusBar = true }: 
         <div className="lt-body">
           <Card>
             <InfoRows
+              spacious
               rows={[
                 ['현재 기분', conditions.mood ?? '선택 안 함'],
                 [
@@ -543,12 +546,15 @@ export default function OutingFlow({ screen: route, showMockStatusBar = true }: 
           title={
             route === 'loading'
               ? '지금 조건에 맞는\n미션을 찾고 있어요'
-              : '조건에 맞는 주변\n장소를 찾고 있어요'
+              : '조건에 맞는\n주변 장소를 찾고 있어요'
           }
           subtitle={route === 'loading' ? '에너지와 외출 조건을 확인하고 있어요' : undefined}
         />
         <div
-          className={`lt-body lt-skeletons${route === 'location-loading' ? 'lt-location-skeletons' : ''}`}
+          className={cn(
+            'lt-body lt-skeletons',
+            route === 'location-loading' && 'lt-location-skeletons',
+          )}
           role="status"
           aria-label="추천 정보를 불러오는 중"
         >
@@ -676,10 +682,14 @@ export default function OutingFlow({ screen: route, showMockStatusBar = true }: 
                 onClick={() => setPlaceId(place.id)}
                 type="button"
               >
-                <span className="lt-place-number">{i + 1}</span>
+                <span className="lt-place-number">
+                  <span className="lt-trim">{i + 1}</span>
+                </span>
                 <strong className="lt-trim">{place.name}</strong>
-                <span className="lt-trim">{place.distance}</span>
-                <span className="lt-trim">{place.walk}</span>
+                <div className="lt-place-meta">
+                  <span className="lt-trim">{place.distance}</span>
+                  <span className="lt-trim">{place.walk}</span>
+                </div>
               </button>
             ))}
           </div>
@@ -735,6 +745,9 @@ export default function OutingFlow({ screen: route, showMockStatusBar = true }: 
     screen = (
       <Page
         {...pageProps}
+        onStop={
+          !resumed && !allDone && mission.placeType !== 'park' ? () => setModal('stop') : undefined
+        }
         nodeId={
           resumed
             ? allDone
@@ -753,17 +766,12 @@ export default function OutingFlow({ screen: route, showMockStatusBar = true }: 
             </Footer>
           ) : (
             <Footer compact>
-              <Button onClick={() => (resumed ? setModal('save') : go('summary'))}>
+              <Button onClick={() => (resumed ? saveRecord() : setModal('save'))}>
                 지금 단계까지 저장하기
               </Button>
               <Button variant="text" onClick={() => (resumed ? setModal('stop') : go('problem'))}>
                 {resumed ? '이 미션 그만하고 싶어요' : '문제가 생겼어요'}
               </Button>
-              {!resumed && mission.placeType !== 'park' && (
-                <Button variant="text" onClick={() => setModal('stop')}>
-                  미션 그만하기
-                </Button>
-              )}
             </Footer>
           )
         }
@@ -801,7 +809,7 @@ export default function OutingFlow({ screen: route, showMockStatusBar = true }: 
               <Button variant="secondary" onClick={() => go('active')}>
                 미션 계속하기
               </Button>
-              <Button onClick={() => setModal('save')}>저장하기</Button>
+              <Button onClick={saveRecord}>저장하기</Button>
             </Footer>
           )
         }

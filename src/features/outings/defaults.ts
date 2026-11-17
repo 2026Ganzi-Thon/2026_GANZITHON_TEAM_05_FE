@@ -1,10 +1,8 @@
 import {
-  BARRIER_OPTIONS,
   BUDGET_OPTIONS,
   DEFAULT_CONDITIONS,
   DISTANCE_OPTIONS,
   DURATION_OPTIONS,
-  MOOD_OPTIONS,
 } from '@/constants/options'
 import type { OutingConditions } from '@/types/condition'
 import type { Conditions } from './types'
@@ -13,11 +11,9 @@ import type { Conditions } from './types'
 export function resolveOutingDefaults(value: OutingConditions | null): Conditions {
   const defaults = value ?? DEFAULT_CONDITIONS
   return {
-    mood: MOOD_OPTIONS.find((option) => option.value === defaults.mood)?.label ?? null,
+    mood: null,
     energy: defaults.energy,
-    barriers: BARRIER_OPTIONS.filter((option) => defaults.barriers.includes(option.value)).map(
-      (option) => option.label,
-    ),
+    barriers: [],
     distance:
       DISTANCE_OPTIONS.find((option) => option.value === defaults.distance)?.label ?? '10분 이내',
     time: DURATION_OPTIONS.find((option) => option.value === defaults.duration)?.label ?? '30분',
