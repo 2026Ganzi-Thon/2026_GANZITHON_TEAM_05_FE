@@ -1,0 +1,55 @@
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+@import 'tailwindcss';
+
+/*
+ * Letit 디자인 토큰 (피그마 기준)
+ * - 색은 불투명도 수식어로 단계 표현: text-ink/50, bg-ink/5 등
+ */
+@theme {
+  /* 폰트 */
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+    'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+
+  /* 색상 */
+  --color-mint: #9fdfbf; /* 메인 · 선택 상태 · 주요 버튼 */
+  --color-ink: #303a50; /* 기본 텍스트 · 아이콘 (보조: /75, /50, /25) */
+  --color-surface: #f9fafb; /* 입력창 · 정보 카드 배경 */
+  --color-dim: rgb(0 0 0 / 0.25); /* 팝업 뒤 어두운 배경 */
+  --color-backdrop: #eef1f4; /* PC에서 앱 프레임 바깥 배경 */
+
+  /* 글자 크기 (line-height 1.35 공통) */
+  --text-title: 24px;
+  --text-title--line-height: 1.35;
+  --text-heading: 20px;
+  --text-heading--line-height: 1.35;
+  --text-body: 16px;
+  --text-body--line-height: 1.35;
+  --text-caption: 12px;
+  --text-caption--line-height: 1.35;
+
+  /* 모서리 */
+  --radius-chip: 10px; /* 입력창 · 선택 버튼 */
+  --radius-button: 15px; /* 하단 큰 버튼 */
+  --radius-card: 20px; /* 정보 카드 */
+  --radius-popup: 25px; /* 팝업 */
+
+  /* 앱 기준 폭 (iPhone 18 Pro) */
+  --container-app: 402px;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-backdrop font-sans text-ink antialiased;
+    font-weight: 500;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
