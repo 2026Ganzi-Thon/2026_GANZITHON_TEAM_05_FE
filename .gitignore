@@ -22,6 +22,9 @@ dist-ssr
 # Vercel
 .vercel
 
+# Windows 로컬 미리보기용 Node (저장소에 바이너리를 커밋하지 않는다)
+.local-runtime/
+
 # AI 도구 · 개인 로컬 설정
 .claude/
 CLAUDE.md
