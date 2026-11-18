@@ -15,7 +15,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="하단 메뉴"
-      className="fixed bottom-[max(30px,env(safe-area-inset-bottom))] left-1/2 z-40 flex h-[60px] w-[240px] -translate-x-1/2 items-center justify-center rounded-full bg-white/25 shadow-[0_5px_50px_rgb(0_0_0/0.1)] backdrop-blur-[12.5px]"
+      className="fixed bottom-[max(20px,env(safe-area-inset-bottom))] left-1/2 z-40 flex h-[60px] w-[240px] -translate-x-1/2 items-center justify-center rounded-full bg-white/25 shadow-[0_5px_50px_rgb(0_0_0/0.1)] backdrop-blur-[12.5px]"
     >
       {TABS.map(({ to, label, Icon }) => (
         <NavLink

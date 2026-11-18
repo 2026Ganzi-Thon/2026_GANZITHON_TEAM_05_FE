@@ -17,6 +17,7 @@
   --color-surface: #f9fafb; /* 입력창 · 정보 카드 배경 */
   --color-dim: rgb(0 0 0 / 0.25); /* 팝업 뒤 어두운 배경 */
   --color-backdrop: #eef1f4; /* PC에서 앱 프레임 바깥 배경 */
+  --color-divider: #f5f7f9; /* 섹션 사이 굵은 구분 띠 (높이 15) */
 
   /* 글자 크기 (line-height 1.35 공통) */
   --text-title: 24px;
