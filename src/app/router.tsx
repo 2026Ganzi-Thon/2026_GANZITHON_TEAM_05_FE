@@ -1,6 +1,7 @@
 import { lazy } from 'react'
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
 import AppFrame from '@/app/AppFrame'
+import { onboardingRoutes } from '@/app/routes/onboardingRoutes'
 import TabLayout from '@/components/layout/TabLayout'
 import { PATHS } from '@/constants/paths'
 import CollectionPage from '@/pages/collection/CollectionPage'
@@ -65,6 +66,9 @@ export const router = createBrowserRouter([
       ...outingRoutes,
 
       // 03 성찰하기 (아카이브, 나의 변화, 도움 받기 등)
+
+      // 00 회원가입 · 로그인 · 기본값 설문 (app/routes/onboardingRoutes.tsx)
+      ...onboardingRoutes,
 
       ...devRoutes,
 
