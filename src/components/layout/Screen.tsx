@@ -10,6 +10,7 @@ interface ScreenProps {
   className?: string
   /** 하단 버튼 영역 className (여백 조정 등) */
   bottomClassName?: string
+  frameClassName?: string
 }
 
 /**
@@ -30,11 +31,14 @@ export default function Screen({
   children,
   className,
   bottomClassName,
+  frameClassName,
 }: ScreenProps) {
   return (
-    <div className="flex flex-1 flex-col pt-[env(safe-area-inset-top)]">
+    <div className={cn('flex flex-1 flex-col pt-[env(safe-area-inset-top)]', frameClassName)}>
       {header}
-      <main className={cn('flex flex-1 flex-col', className)}>{children}</main>
+      <main tabIndex={0} className={cn('flex flex-1 flex-col', className)}>
+        {children}
+      </main>
       {bottom && (
         <div
           className={cn(

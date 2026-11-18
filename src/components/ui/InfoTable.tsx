@@ -16,8 +16,8 @@ export default function InfoTable({ rows, className }: InfoTableProps) {
   return (
     <div className={cn('w-full rounded-card bg-surface p-[20px]', className)}>
       <dl className="grid grid-cols-[auto_1fr] gap-[25px] p-[5px] text-body font-medium">
-        {rows.map((row) => (
-          <div key={row.label} className="contents">
+        {rows.map((row, index) => (
+          <div key={`${row.label}-${index}`} className="contents">
             <dt className="text-ink/50">{row.label}</dt>
             <dd className="text-right text-ink/75">{row.value}</dd>
           </div>

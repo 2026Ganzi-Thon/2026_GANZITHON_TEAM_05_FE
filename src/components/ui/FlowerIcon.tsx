@@ -1,12 +1,10 @@
 import { FLOWERS, type FlowerId } from '@/constants/flowers'
 import { cn } from '@/utils/cn'
 
-/** flower-01.png ~ flower-18.png → { 1: url, ... } */
-const flowerImages = Object.fromEntries(
-  Object.entries(
-    import.meta.glob<string>('@/assets/flowers/*.png', { eager: true, import: 'default' }),
-  ).map(([path, url]) => [Number(path.match(/flower-(\d+)\.png$/)?.[1]), url]),
-) as Record<FlowerId, string>
+const flowerImages = import.meta.glob<string>('@/assets/flower-icons/*.svg', {
+  eager: true,
+  import: 'default',
+})
 
 interface FlowerIconProps {
   id: FlowerId
@@ -19,28 +17,36 @@ interface FlowerIconProps {
 
 /**
  * 도감 꽃 아이콘 (동그라미 + 꽃 모양).
- * 꽃 모양 PNG를 마스크로 쓰고 색은 CSS로 입힌다.
+ * 피그마 원본 보유·미보유 SVG를 사용한다. 보유 아이콘의 2px 외곽 테두리도 보존한다.
  */
 export default function FlowerIcon({ id, owned, size = 90, className }: FlowerIconProps) {
   const flower = FLOWERS[id - 1]
-  const mask = `url(${flowerImages[id]}) center / contain no-repeat`
+  const src =
+    flowerImages[
+      `/src/assets/flower-icons/${String(id).padStart(2, '0')}-${owned ? 'owned' : 'unowned'}.svg`
+    ]
 
   return (
     <div
       role="img"
       aria-label={owned ? flower.name : '아직 얻지 못한 꽃'}
-      className={cn(
-        'relative shrink-0 rounded-full',
-        owned ? 'bg-mint/25 ring-2 ring-mint/50' : 'bg-ink/5',
-        className,
-      )}
+      className={cn('relative shrink-0', className)}
       style={{ width: size, height: size }}
     >
       <span
         aria-hidden
-        className={cn('absolute inset-0', owned ? 'bg-mint' : 'bg-ink/25')}
-        style={{ mask, WebkitMask: mask }}
-      />
+        className="absolute top-0 left-0 size-[90px] origin-top-left"
+        style={{ transform: `scale(${size / 90})` }}
+      >
+        <img
+          alt=""
+          src={src}
+          className={cn(
+            'absolute block max-w-none',
+            owned ? '-top-[2px] -left-[2px]' : 'top-0 left-0',
+          )}
+        />
+      </span>
     </div>
   )
 }

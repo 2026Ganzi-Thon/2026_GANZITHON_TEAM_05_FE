@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '@/utils/cn'
 
@@ -13,6 +13,7 @@ interface ModalProps {
   className?: string
   /** 스크린리더용 제목 id (aria-labelledby) */
   labelledBy?: string
+  describedBy?: string
 }
 
 /**
@@ -26,19 +27,54 @@ export default function Modal({
   children,
   className,
   labelledBy,
+  describedBy,
 }: ModalProps) {
+  const contentRef = useRef<HTMLDivElement>(null)
   // 팝업이 열려 있는 동안 뒤 화면 스크롤 막기 + Esc로 닫기
   useEffect(() => {
     if (!open) return
     const prevOverflow = document.body.style.overflow
+    const previousFocus =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
     document.body.style.overflow = 'hidden'
+    const focusable = () =>
+      Array.from(
+        contentRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex="0"]',
+        ) ?? [],
+      ).filter((element) => element.getClientRects().length > 0)
+    const frame = requestAnimationFrame(() => (focusable()[0] ?? contentRef.current)?.focus())
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose?.()
+      if (e.key !== 'Tab') return
+      const elements = focusable()
+      const first = elements[0]
+      const last = elements.at(-1)
+      if (!first || !last) {
+        e.preventDefault()
+        contentRef.current?.focus()
+        return
+      }
+      if (
+        e.shiftKey &&
+        (document.activeElement === first || !contentRef.current?.contains(document.activeElement))
+      ) {
+        e.preventDefault()
+        last.focus()
+      } else if (
+        !e.shiftKey &&
+        (document.activeElement === last || !contentRef.current?.contains(document.activeElement))
+      ) {
+        e.preventDefault()
+        first.focus()
+      }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => {
       document.body.style.overflow = prevOverflow
+      cancelAnimationFrame(frame)
       window.removeEventListener('keydown', onKeyDown)
+      previousFocus?.focus()
     }
   }, [open, onClose])
 
@@ -55,11 +91,14 @@ export default function Modal({
           onClick={closeOnDimClick ? onClose : undefined}
         >
           <motion.div
+            ref={contentRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-labelledby={labelledBy}
+            aria-describedby={describedBy}
             className={cn(
-              'flex w-full max-w-[362px] flex-col gap-[15px] rounded-popup bg-white p-[15px]',
+              'flex max-h-[calc(100dvh-40px)] w-full max-w-[362px] flex-col gap-[15px] overflow-y-auto overscroll-contain rounded-popup bg-white p-[15px]',
               className,
             )}
             initial={{ opacity: 0, scale: 0.96, y: 8 }}

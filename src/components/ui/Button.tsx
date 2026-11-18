@@ -23,6 +23,7 @@ export default function Button({
   variant = 'primary',
   className,
   type = 'button',
+  children,
   ...props
 }: ButtonProps) {
   return (
@@ -36,6 +37,8 @@ export default function Button({
         className,
       )}
       {...props}
-    />
+    >
+      <span className="trim-text">{children}</span>
+    </button>
   )
 }

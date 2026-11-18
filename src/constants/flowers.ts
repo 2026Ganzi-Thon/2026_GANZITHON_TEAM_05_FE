@@ -1,4 +1,4 @@
-/** 도감 꽃 18종 (획득 순서). 이미지: src/assets/flowers/flower-01.png ~ flower-18.png */
+/** 도감 꽃 18종 (획득 순서). 원본 보유·미보유 SVG: src/assets/flower-icons */
 export const FLOWERS = [
   { id: 1, name: '칼라', description: '단정하고 우아한 선처럼 주변 분위기까지 환하게 밝혀줘요.' },
   { id: 2, name: '아이리스', description: '기분 좋은 영감과 희망찬 에너지를 불어넣어요.' },
