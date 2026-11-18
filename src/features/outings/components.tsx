@@ -6,10 +6,11 @@ import SharedModal from '@/components/ui/Modal'
 import SharedScreen from '@/components/layout/Screen'
 import PageTitle from '@/components/layout/PageTitle'
 import TopNav, { TopNavTextButton } from '@/components/layout/TopNav'
-import { useId, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { useId, useMemo, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { cn } from '@/utils/cn'
 import { assets } from './assets'
 import type { Place } from './types'
+import OutingMap from './OutingMap'
 
 export function Button({
   children,
@@ -28,14 +29,6 @@ export function Button({
   )
 }
 
-export function StatusBar() {
-  return (
-    <div className="lt-status" aria-hidden="true">
-      <span>9:41</span>
-      <img src={assets.statusIcons} alt="" />
-    </div>
-  )
-}
 export function TopBar({
   onBack,
   onSkip,
@@ -47,7 +40,6 @@ export function TopBar({
 }) {
   return (
     <div className="lt-topbar">
-      <StatusBar />
       <TopNav
         className="lt-feature-topnav"
         onBack={onBack}
@@ -289,55 +281,15 @@ export function Metrics({
     </dl>
   )
 }
-export function MockMap({
-  park = false,
-  twoPlaces = false,
-  selected = 0,
-  onSelect,
-}: {
-  park?: boolean
-  twoPlaces?: boolean
-  selected?: number
-  onSelect?: (index: number) => void
-}) {
-  return (
-    <div className={cn('lt-map', park && 'lt-map--park')} aria-label="주변 장소 목업 지도">
-      <div className="lt-map-crop">
-        <img className="lt-map-image" src={assets.map} alt="서울 강남구의 주변 장소 지도" />
-      </div>
-      <div className="lt-map-cone">
-        <img src={assets.locationCone} alt="" />
-      </div>
-      <img className="lt-map-dot" src={assets.locationDot} alt="현재 위치" />
-      <button
-        className={cn('lt-map-marker lt-map-marker--one', selected === 0 && 'is-selected')}
-        onClick={() => onSelect?.(0)}
-        aria-label="첫 번째 장소 선택"
-        type="button"
-      >
-        <span className="lt-trim">1</span>
-      </button>
-      {twoPlaces && (
-        <button
-          className={cn('lt-map-marker lt-map-marker--two', selected === 1 && 'is-selected')}
-          onClick={() => onSelect?.(1)}
-          aria-label="두 번째 장소 선택"
-          type="button"
-        >
-          <span className="lt-trim">2</span>
-        </button>
-      )}
-    </div>
-  )
-}
 export function PlaceInfo({ place, park = false }: { place: Place; park?: boolean }) {
+  const places = useMemo(() => [place], [place])
   return (
     <section className="lt-place-info">
       <div className="lt-place-copy">
         <h2 className="lt-trim">장소 정보</h2>
         <p className="lt-trim">{place.address}</p>
       </div>
-      <MockMap park={park} />
+      <OutingMap places={places} selectedPlaceId={place.id} park={park} />
     </section>
   )
 }
@@ -383,9 +335,7 @@ export function Modal({
   const titleId = useId()
   return (
     <>
-      <div className="lt-modal-underlay" data-figma-node={nodeId}>
-        <StatusBar />
-      </div>
+      <div className="lt-modal-underlay" data-figma-node={nodeId} />
       <SharedModal
         open
         onClose={onClose}

@@ -75,11 +75,25 @@ src/
 
 화면은 `src/features/outings`, 원본 피그마 에셋은 `src/assets/outings`, 상태는 `src/stores/outingStore.ts`에 있습니다. 버튼·선택지·입력창·진행 막대·정보 표·팝업과 화면 틀은 공통 UI를 재사용합니다. 스타일은 공통 `@theme` 색상·폰트 토큰과 `lt-` 범위 CSS를 사용합니다.
 
-백엔드 연결 전 데이터는 전부 목업입니다. 추천 미션, 장소, 지도는 외부 API 키 없이 표시되며 실제 위치 권한을 요청하지 않습니다. 수행 상태와 후기는 Zustand persist의 `letit-outings-mock` 키에 저장되므로 새로고침해도 유지됩니다. 초기화가 필요하면 브라우저 개발자 도구의 Application → Local Storage에서 이 키를 삭제하고 새로고침하세요.
+백엔드 연결 전 추천 미션·장소 목록·거리·도보 시간은 목업입니다. 수행 상태와 후기는 Zustand persist의 `letit-outings-mock` 키에 저장되므로 새로고침해도 유지됩니다. 초기화가 필요하면 브라우저 개발자 도구의 Application → Local Storage에서 이 키를 삭제하고 새로고침하세요.
 
 온보딩 기본값은 공통 `useUserDefaultsStore`를 참조합니다. 기본값 안내에서 건너뛴 거리·시간·예산·에너지를 이 값으로 채웁니다. API 연결 시 `mockData.ts`와 스토어의 저장 동작을 교체할 수 있습니다.
 
-가상 상태 표시줄은 피그마 비교용입니다. 앱이 자체 상태 표시줄을 제공하면 `OutingFlow`의 `showMockStatusBar={false}`로 숨길 수 있습니다. 하단에는 safe-area 여백을 적용했습니다.
+웹 화면에는 가상 시간·와이파이·배터리 표시를 넣지 않습니다. 상태 표시줄이 있던 상단 여백은 디자인대로 유지하며, 하단에는 safe-area 여백을 적용했습니다.
+
+### 네이버 지도 연결
+
+`OutingMap`은 장소 선택·미션 상세·수행·내역 화면에서 재사용합니다. 키가 없으면 '지도 미리보기'로 표시하고, 장소 카드 선택은 계속 사용할 수 있습니다. 실제 위치 권한 요청은 아직 연결하지 않았으며, 기존 위치 동의 팝업은 UI만 유지합니다.
+
+1. 네이버 클라우드 Maps Application에서 **Dynamic Map**을 활성화합니다. 주소를 좌표로 변환할 때는 **Geocoding**도 활성화합니다.
+2. Web 서비스 URL에 개발 주소(`http://127.0.0.1:5174`, `http://localhost:5174`)와 배포 도메인을 등록합니다. 개발 서버 포트가 다르면 해당 주소를 등록합니다.
+3. `.env.local`에 `VITE_NAVER_MAP_CLIENT_ID=발급받은_Client_ID`를 입력하고 개발 서버를 재시작합니다. Client Secret은 프런트엔드에 넣지 않습니다.
+
+키가 설정되면 SDK를 한 번만 로딩하고, 기존 장소 주소를 Geocoding으로 변환해 번호 마커를 표시합니다. 마커 선택과 카드 선택은 같은 상태를 사용하며, 카드 선택 시 해당 장소로 지도를 이동합니다. `Place.coordinates`에 `{ lat, lng }`가 제공되면 Geocoding 없이 해당 좌표를 사용합니다. SDK·인증·주소 변환 실패 시 미리보기와 재시도 버튼을 표시합니다. 화면 이동 시 지도 인스턴스·마커·이벤트·크기 관찰자를 정리합니다.
+
+실제 주변 장소 검색과 거리·도보 시간 산출은 별도 장소/경로 API 연동이 필요합니다. 현재 지도는 전달된 장소 목록을 표시합니다.
+
+공식 문서: [SDK 시작하기](https://navermaps.github.io/maps.js.ncp/docs/tutorial-2-Getting-Started.html), [HTML 마커](https://navermaps.github.io/maps.js.ncp/docs/tutorial-2-Marker.html)
 
 ## 디자인 토큰
 

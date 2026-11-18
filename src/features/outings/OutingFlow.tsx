@@ -18,13 +18,13 @@ import {
   Metrics,
   MissionChecks,
   Modal,
-  MockMap,
   NumberedSteps,
   Page,
   PlaceInfo,
   ReviewInput,
 } from './components'
 import { HomeScreen } from './HomeScreen'
+import OutingMap from './OutingMap'
 import {
   alternativeMissions,
   barrierOptions,
@@ -68,9 +68,8 @@ const screenNodes: Record<Screen, string> = {
 }
 export interface OutingFlowProps {
   screen: Screen
-  showMockStatusBar?: boolean
 }
-export default function OutingFlow({ screen: route, showMockStatusBar = true }: OutingFlowProps) {
+export default function OutingFlow({ screen: route }: OutingFlowProps) {
   const navigate = useNavigate()
   const { state, session, setMockState: setState, updateSession } = useOutingStore()
   const userDefaults = useUserDefaultsStore((store) => store.defaults)
@@ -661,14 +660,11 @@ export default function OutingFlow({ screen: route, showMockStatusBar = true }: 
           <p className="lt-hint lt-trim">스크롤해, 미션을 확인할 수 있어요</p>
         </div>
         <div className="lt-body">
-          <MockMap
+          <OutingMap
             park
-            twoPlaces
-            selected={Math.max(
-              0,
-              places.findIndex((p) => p.id === placeId),
-            )}
-            onSelect={(i) => setPlaceId(places[i].id)}
+            places={places}
+            selectedPlaceId={selectedPlace.id}
+            onSelect={setPlaceId}
           />
         </div>
         <section className="lt-body lt-place-picker">
@@ -952,7 +948,7 @@ export default function OutingFlow({ screen: route, showMockStatusBar = true }: 
     ],
   }
   return (
-    <div className="lt-app" data-mock-status={showMockStatusBar}>
+    <div className="lt-app">
       {screen}
       {modal && (
         <Modal

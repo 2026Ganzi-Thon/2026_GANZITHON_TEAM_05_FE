@@ -2,7 +2,7 @@ import { Fragment, useState } from 'react'
 import BottomNav from '@/components/layout/BottomNav'
 import { cn } from '@/utils/cn'
 import { assets, calendarAssets } from './assets'
-import { Button, Card, InfoRows, StatusBar } from './components'
+import { Button, Card, InfoRows } from './components'
 import { missionById } from './mockData'
 import type { MockState } from './types'
 
@@ -231,7 +231,6 @@ export function HomeScreen({
           </section>
         </div>
       </main>
-      <StatusBar />
       <BottomNav />
     </div>
   )

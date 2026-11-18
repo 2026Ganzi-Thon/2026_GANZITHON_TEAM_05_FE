@@ -71,4 +71,5 @@ export interface Place {
   distance: string
   walk: string
   address: string
+  coordinates?: { lat: number; lng: number }
 }

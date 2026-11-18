@@ -10,7 +10,6 @@ import heroWave from '@/assets/outings/heroWave.svg'
 import monthPrevious from '@/assets/outings/monthPrevious.svg'
 import monthNext from '@/assets/outings/monthNext.svg'
 import bottomNavigation from '@/assets/outings/bottomNavigation.svg'
-import statusIcons from '@/assets/outings/statusIcons.svg'
 import radioEmpty from '@/assets/outings/radioEmpty.svg'
 import radioSelected from '@/assets/outings/radioSelected.svg'
 import back from '@/assets/outings/back.svg'
@@ -69,7 +68,6 @@ export const assets = {
   monthPrevious,
   monthNext,
   bottomNavigation,
-  statusIcons,
   radioEmpty,
   radioSelected,
   back,
