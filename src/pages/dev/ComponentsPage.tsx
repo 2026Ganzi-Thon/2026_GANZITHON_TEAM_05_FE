@@ -19,6 +19,7 @@ import {
   MOOD_OPTIONS,
   toConditionRows,
 } from '@/constants/options'
+import { DAYS_PER_FLOWER, todayString, useCollectionStore } from '@/stores/collectionStore'
 import type { Barrier, Distance, Mood } from '@/types/condition'
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -38,6 +39,15 @@ export default function ComponentsPage() {
   const [text, setText] = useState('HelloWorld')
   const [password, setPassword] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
+  const collection = useCollectionStore()
+  /** 테스트용: 오늘부터 하루씩 거슬러 올라간 날짜를 "모두 완료"로 추가 */
+  const addCompletedDays = (count: number) => {
+    for (let i = 0; i < count; i++) {
+      const d = new Date()
+      d.setDate(d.getDate() - collection.completedDates.length - i)
+      collection.markDayCompleted(todayString(d))
+    }
+  }
 
   return (
     <Screen
@@ -129,6 +139,23 @@ export default function ComponentsPage() {
             </div>
           ))}
         </div>
+      </Section>
+
+      <Section title="도감 테스트 (localStorage letit-collection)">
+        <p className="text-caption text-ink/50">
+          모두 완료 {collection.completedDates.length}일 · 보유 {collection.owned.length}개 · 팝업
+          대기 {collection.pendingRewards.length}개
+        </p>
+        <Button onClick={() => addCompletedDays(1)}>모두 완료한 날 +1</Button>
+        <Button onClick={() => addCompletedDays(DAYS_PER_FLOWER)}>
+          모두 완료한 날 +{DAYS_PER_FLOWER} (꽃 1개 분량)
+        </Button>
+        <Button variant="secondary" onClick={() => collection.syncRewards(todayString())}>
+          꽃 지급 (앱 다시 실행한 것처럼)
+        </Button>
+        <Button variant="text" onClick={collection.reset}>
+          도감 초기화
+        </Button>
       </Section>
 
       <Section title="FlowerSilhouette (1~5)">
