@@ -4,6 +4,7 @@ import ChoiceChipGroup from '@/components/ui/ChoiceChipGroup'
 import { PATHS } from '@/constants/paths'
 import { useOutingStore, type OutingSession } from '@/stores/outingStore'
 import { useUserDefaultsStore } from '@/stores/userDefaultsStore'
+import { todayString, useCollectionStore } from '@/stores/collectionStore'
 import { cn } from '@/utils/cn'
 import { OUTING_SCREEN_PATHS } from './navigation'
 import { resolveOutingDefaults } from './defaults'
@@ -154,7 +155,11 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
     }))
   }
   function start() {
-    setState((prev) => ({ ...prev, resting: false }))
+    setState((prev) => ({
+      ...prev,
+      resting: false,
+      conditions: { ...prev.conditions, mood: null, barriers: [] },
+    }))
     setRecordId(null)
     setReview({ ...emptyReview, mood: '0' })
     go('conditions-1')
@@ -264,6 +269,7 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
       }
     })
     setRecordId(id)
+    if (record.completed) useCollectionStore.getState().markDayCompleted(todayString())
     go('review-mood')
   }
   function finishReview() {
@@ -293,6 +299,7 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
         ...prev,
         records: [...prev.records, record],
       }))
+      if (record.completed) useCollectionStore.getState().markDayCompleted(todayString())
     }
     setToast('외출 기록을 저장했어요')
     setReview({ ...emptyReview, mood: '0' })

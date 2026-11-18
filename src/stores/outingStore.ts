@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { emptyReview, initialMockState } from '@/features/outings/mockData'
+import { emptyConditions, emptyReview, initialMockState } from '@/features/outings/mockData'
 import type { MockState, ReviewDraft } from '@/features/outings/types'
 
 export interface OutingSession {
@@ -56,6 +56,31 @@ export const useOutingStore = create<OutingStore>()(
       reset: () =>
         set({ state: structuredClone(initialMockState), session: structuredClone(initialSession) }),
     }),
-    { name: 'letit-outings-mock', version: 1, storage: createJSONStorage(() => localStorage) },
+    {
+      name: 'letit-outings-mock',
+      version: 2,
+      storage: createJSONStorage(() => localStorage),
+      migrate: (persistedState, version) => {
+        const previous = persistedState as Pick<OutingStore, 'state' | 'session'>
+        const conditions = previous?.state?.conditions
+        // 이전 빌드에서 자동 저장된 피그마 예시값만 비운다. 기록·수행 단계는 보존한다.
+        const hasDemoConditions =
+          conditions?.mood === '기분 전환이 필요해요' &&
+          conditions.energy === 2 &&
+          conditions.barriers.length === 2 &&
+          conditions.barriers.includes('몸이 피곤하고 힘들어요') &&
+          conditions.barriers.includes('사람 많은 곳이 부담스러워요') &&
+          conditions.distance === '10분 이내' &&
+          conditions.time === '1시간' &&
+          conditions.budget === '5,000원 이하'
+        if (version < 2 && hasDemoConditions) {
+          return {
+            ...previous,
+            state: { ...previous.state, conditions: structuredClone(emptyConditions) },
+          }
+        }
+        return previous
+      },
+    },
   ),
 )

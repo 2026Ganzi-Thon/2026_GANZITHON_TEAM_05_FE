@@ -307,14 +307,7 @@ export const cafes: Place[] = [
   },
 ]
 export const initialMockState: MockState = {
-  conditions: {
-    mood: moodOptions[3],
-    energy: 2,
-    barriers: [barrierOptions[0], barrierOptions[2]],
-    distance: '10분 이내',
-    time: '1시간',
-    budget: '5,000원 이하',
-  },
+  conditions: { ...emptyConditions, barriers: [] },
   savedMissions: [
     { missionId: 'store', checked: [0, 1], date: '8월 31일', placeId: 'cu' },
     { missionId: 'park', checked: [0], date: '8월 31일', placeId: 'dosan' },

@@ -1,5 +1,8 @@
 import { Fragment, useState } from 'react'
 import BottomNav from '@/components/layout/BottomNav'
+import FlowerIcon from '@/components/ui/FlowerIcon'
+import { FLOWERS } from '@/constants/flowers'
+import { useCollectionStore } from '@/stores/collectionStore'
 import { cn } from '@/utils/cn'
 import { assets, calendarAssets } from './assets'
 import { Button, Card, InfoRows } from './components'
@@ -20,6 +23,8 @@ export function HomeScreen({
   onNavigateExternal?: (destination: 'collection' | 'reflection') => void
 }) {
   const [monthOffset, setMonthOffset] = useState(0)
+  const ownedFlowers = useCollectionStore((store) => store.owned)
+  const recentFlowers = ownedFlowers.slice(-3)
   const date = new Date(2026, 8 + monthOffset, 1)
   const month = date.getMonth() + 1
   const year = date.getFullYear()
@@ -107,20 +112,20 @@ export function HomeScreen({
           <div className="lt-divider" />
           <section className="lt-home-section" id="lt-collection">
             <h2 className="lt-section-title lt-trim">나의 도감</h2>
-            <div className="lt-flower-row">
-              {[
-                [assets.flowerCalla, '칼라'],
-                [assets.flowerIris, '아이리스'],
-                [assets.flowerAmaryllis, '아마릴리스'],
-              ].map(([src, name]) => (
-                <figure key={name}>
-                  <div className="lt-flower-image">
-                    <img src={src} alt={name} />
-                  </div>
-                  <figcaption className="lt-trim">{name}</figcaption>
-                </figure>
-              ))}
-            </div>
+            {recentFlowers.length ? (
+              <div className="lt-flower-row">
+                {recentFlowers.map(({ id }) => (
+                  <figure key={id}>
+                    <FlowerIcon id={id} owned />
+                    <figcaption className="lt-trim">{FLOWERS[id - 1].name}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            ) : (
+              <p className="lt-hint lt-trim">
+                아직 얻은 꽃이 없어요. 미션 달성으로 꽃을 모아보세요.
+              </p>
+            )}
             <Button variant="secondary" onClick={() => navigate('collection')}>
               도감에서 보기
             </Button>

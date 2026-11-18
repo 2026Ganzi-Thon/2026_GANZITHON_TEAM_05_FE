@@ -4,6 +4,7 @@ import FlowerIcon from '@/components/ui/FlowerIcon'
 import Modal from '@/components/ui/Modal'
 import { router } from '@/app/router'
 import { DAYS_PER_FLOWER, todayString, useCollectionStore } from '@/stores/collectionStore'
+import { useOutingStore } from '@/stores/outingStore'
 import { FLOWERS } from '@/constants/flowers'
 import { PATHS } from '@/constants/paths'
 
@@ -25,7 +26,15 @@ export default function FlowerRewardPopup() {
 
   // "다음 앱 실행 때 지급" (기획서 3-10): 앱이 시작될 때 한 번만 확인
   useEffect(() => {
-    useCollectionStore.getState().syncRewards(todayString())
+    const collection = useCollectionStore.getState()
+    // 통합 전 저장한 전체 완료 기록도 일수에 반영한다. 일부 완료는 제외한다.
+    for (const record of useOutingStore.getState().state.records) {
+      const completedAt = new Date(record.createdAt)
+      if (record.completed && Number.isFinite(completedAt.getTime())) {
+        collection.markDayCompleted(todayString(completedAt))
+      }
+    }
+    collection.syncRewards(todayString())
   }, [])
 
   const flowerId = pending[0]
