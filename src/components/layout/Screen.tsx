@@ -36,7 +36,9 @@ export default function Screen({
   return (
     <div className={cn('flex flex-1 flex-col pt-[env(safe-area-inset-top)]', frameClassName)}>
       {header}
-      <main className={cn('flex flex-1 flex-col', className)}>{children}</main>
+      <main tabIndex={0} className={cn('flex flex-1 flex-col', className)}>
+        {children}
+      </main>
       {bottom && (
         <div
           className={cn(

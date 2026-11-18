@@ -15,7 +15,7 @@ export default function CollectionPage() {
 
   return (
     <main className="flex flex-1 flex-col pt-[env(safe-area-inset-top)]">
-      <header className="flex flex-col gap-[20px] px-[25px] pt-[50px] pb-[25px]">
+      <header className="page-title flex flex-col gap-[20px] px-[25px] pt-[100px] pb-[25px]">
         <h1 className="text-title font-semibold text-ink">나의 도감</h1>
         <p className="text-body font-medium text-ink/50">미션 달성을 통해 얻은 꽃들이에요</p>
       </header>
@@ -26,7 +26,9 @@ export default function CollectionPage() {
             {owned.map(({ id }) => (
               <li key={id} className="flex flex-col items-center gap-[20px]">
                 <FlowerIcon id={id} owned />
-                <span className="text-body font-medium text-ink/50">{FLOWERS[id - 1].name}</span>
+                <span className="trim-text text-body font-medium text-ink/50">
+                  {FLOWERS[id - 1].name}
+                </span>
               </li>
             ))}
           </ul>
@@ -56,7 +58,7 @@ export default function CollectionPage() {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-[20px] p-[20px]">
-      <h2 className="p-[5px] text-heading font-semibold text-ink">{title}</h2>
+      <h2 className="trim-text p-[5px] text-heading font-semibold text-ink">{title}</h2>
       {children}
     </section>
   )

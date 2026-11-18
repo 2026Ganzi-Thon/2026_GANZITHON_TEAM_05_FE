@@ -34,7 +34,12 @@ export const PATHS = {
   HOME: '/home',
   COLLECTION: '/collection', // 04 도감
   REFLECTION: '/reflection', // 03 성찰하기
+  ARCHIVE: '/reflection/archive',
+  RECORD_DETAIL: '/reflection/archive/:recordId',
+  CHANGES: '/reflection/changes',
+  HELP: '/reflection/help',
 } as const
 
 /** 기본값 설문 n번째 장 경로 */
 export const surveyPath = (step: number) => `/onboarding/survey/${step}`
+export const recordPath = (id: string) => `/reflection/archive/${encodeURIComponent(id)}`

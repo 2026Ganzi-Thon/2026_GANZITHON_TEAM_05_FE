@@ -8,6 +8,7 @@ import FieldMessage from '@/pages/onboarding/components/FieldMessage'
 import { surveyPath } from '@/constants/paths'
 import { useAuthStore } from '@/stores/authStore'
 import { useOnboardingDraftStore } from '@/stores/onboardingDraftStore'
+import { useUserDefaultsStore } from '@/stores/userDefaultsStore'
 
 const FORM_ID = 'signup-form'
 
@@ -33,6 +34,7 @@ export default function SignupPage() {
       return
     }
     resetDraft()
+    useUserDefaultsStore.getState().reset()
     navigate(surveyPath(1), { replace: true })
   }
 

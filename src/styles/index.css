@@ -40,6 +40,15 @@
 }
 
 @layer base {
+  /* 모바일 앱 전 화면·팝업: 스크롤 입력은 유지하고 표시 막대만 숨긴다. */
+  * {
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
@@ -52,5 +61,17 @@
 
   button {
     cursor: pointer;
+  }
+  .page-title h1,
+  .page-title p,
+  .page-title h2,
+  .trim-text,
+  label,
+  [role='radio'] > span,
+  [role='checkbox'] > span,
+  dl dt,
+  dl dd {
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
   }
 }

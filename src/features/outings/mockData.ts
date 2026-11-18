@@ -6,7 +6,7 @@ import {
   DURATION_OPTIONS,
   BUDGET_OPTIONS,
 } from '@/constants/options'
-import type { Conditions, Energy, Mission, MockState, Place, ReviewDraft } from './types'
+import type { Conditions, Energy, Mission, Place, ReviewDraft } from './types'
 
 export const moodOptions = MOOD_OPTIONS.map((option) => option.label)
 export const energyOptions = ENERGY_OPTIONS.map((option) => option.label)
@@ -19,12 +19,10 @@ export const problemOptions = [
   '비용이 부담스러워요',
   '기타',
 ]
-// The last two identical labels are present in Figma; IDs remain distinct in the UI.
 export const reviewMoodOptions = [
   '조금 나아졌어요',
   '이전과 비슷해요',
   '오히려 피곤해요',
-  '잘 모르겠어요',
   '잘 모르겠어요',
 ]
 export const conditionGroups = [
@@ -40,7 +38,7 @@ export const conditionGroups = [
   },
   {
     key: 'budget',
-    label: '사용 가능한 금액',
+    label: '사용 가능한 예산',
     options: BUDGET_OPTIONS.map((option) => option.label),
   },
 ] as const
@@ -306,12 +304,3 @@ export const cafes: Place[] = [
     address: '서울특별시 강남구 압구정로36길 12',
   },
 ]
-export const initialMockState: MockState = {
-  conditions: { ...emptyConditions, barriers: [] },
-  savedMissions: [
-    { missionId: 'store', checked: [0, 1], date: '8월 31일', placeId: 'cu' },
-    { missionId: 'park', checked: [0], date: '8월 31일', placeId: 'dosan' },
-  ],
-  records: [],
-  resting: false,
-}

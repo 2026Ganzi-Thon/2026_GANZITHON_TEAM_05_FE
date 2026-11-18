@@ -34,7 +34,7 @@ export default function SurveyDefaultsPage() {
       <div className="flex flex-col gap-[25px] p-[20px]">
         <InfoTable rows={toConditionRows(conditions)} />
         <p className="p-[5px] text-caption font-medium text-ink/25">
-          기본값은 추후 변경할 수 없어요
+          첫 기본값은 유지돼요. 다음 외출부터는 직전에 입력한 에너지와 조건을 사용해요.
         </p>
       </div>
     </Screen>

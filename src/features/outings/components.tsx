@@ -335,7 +335,6 @@ export function Modal({
   const titleId = useId()
   return (
     <>
-      <div className="lt-modal-underlay" data-figma-node={nodeId} />
       <SharedModal
         open
         onClose={onClose}
@@ -343,7 +342,7 @@ export function Modal({
         labelledBy={titleId}
         describedBy={`${titleId}-description`}
       >
-        <div className="lt-modal-copy">
+        <div className="lt-modal-copy" data-figma-node={nodeId}>
           <h2 className="lt-trim" id={titleId}>
             {title}
           </h2>

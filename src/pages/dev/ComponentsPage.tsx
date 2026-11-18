@@ -141,7 +141,7 @@ export default function ComponentsPage() {
         </div>
       </Section>
 
-      <Section title="도감 테스트 (localStorage letit-collection)">
+      <Section title="도감 목업 테스트 (새로고침 시 초기화)">
         <p className="text-caption text-ink/50">
           모두 완료 {collection.completedDates.length}일 · 보유 {collection.owned.length}개 · 팝업
           대기 {collection.pendingRewards.length}개

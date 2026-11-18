@@ -25,7 +25,12 @@ export default function PageTitle({
   className,
 }: PageTitleProps) {
   return (
-    <div className={cn('flex flex-col gap-[40px] px-[25px] pt-[50px] pb-[25px]', className)}>
+    <div
+      className={cn(
+        'page-title flex flex-col gap-[40px] px-[25px] pt-[100px] pb-[25px]',
+        className,
+      )}
+    >
       {progress && <ProgressBar current={progress.current} total={progress.total} />}
       <div className="flex flex-col gap-[20px] font-semibold">
         {eyebrow && <p className="text-body text-ink/75">{eyebrow}</p>}

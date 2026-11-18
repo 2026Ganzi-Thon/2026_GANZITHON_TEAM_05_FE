@@ -5,6 +5,7 @@ import Screen from '@/components/layout/Screen'
 import Button from '@/components/ui/Button'
 import FlowerSilhouette, { type SilhouetteVariant } from '@/components/ui/FlowerSilhouette'
 import { PATHS } from '@/constants/paths'
+import background from '@/assets/silhouettes/background.svg'
 
 /** 꽃 실루엣이 바뀌는 간격 (ms) */
 const CYCLE_MS = 3000
@@ -36,9 +37,11 @@ export default function OnboardingStartPage() {
       }
     >
       {/* 민트 그라데이션 배경 */}
-      <div
+      <img
+        src={background}
+        alt=""
         aria-hidden
-        className="absolute inset-x-0 top-0 h-[700px] bg-linear-to-b from-mint to-mint/0"
+        className="pointer-events-none absolute top-0 left-1/2 max-w-none -translate-x-1/2"
       />
 
       {/* 꽃 실루엣 (교차 페이드) */}

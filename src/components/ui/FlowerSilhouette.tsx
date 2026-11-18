@@ -1,8 +1,8 @@
-import flower1 from '@/assets/silhouettes/flower-1.webp'
-import flower2 from '@/assets/silhouettes/flower-2.webp'
-import flower3 from '@/assets/silhouettes/flower-3.webp'
-import flower4 from '@/assets/silhouettes/flower-4.webp'
-import flower5 from '@/assets/silhouettes/flower-5.webp'
+import flower1 from '@/assets/silhouettes/flower-1.svg'
+import flower2 from '@/assets/silhouettes/flower-2.svg'
+import flower3 from '@/assets/silhouettes/flower-3.svg'
+import flower4 from '@/assets/silhouettes/flower-4.svg'
+import flower5 from '@/assets/silhouettes/flower-5.svg'
 import { cn } from '@/utils/cn'
 
 const SILHOUETTES = [flower1, flower2, flower3, flower4, flower5] as const

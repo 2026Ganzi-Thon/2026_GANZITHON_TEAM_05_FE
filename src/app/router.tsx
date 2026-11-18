@@ -7,6 +7,12 @@ import { PATHS } from '@/constants/paths'
 import CollectionPage from '@/pages/collection/CollectionPage'
 import OnboardingStartPage from '@/pages/onboarding/OnboardingStartPage'
 import ReflectionPage from '@/pages/reflection/ReflectionPage'
+import {
+  ArchivePage,
+  ChangesPage,
+  HelpPage,
+  RecordDetailPage,
+} from '@/pages/reflection/ReflectionPages'
 import { OUTING_SCREEN_PATHS } from '@/features/outings/navigation'
 import type { Screen } from '@/features/outings/types'
 
@@ -66,6 +72,10 @@ export const router = createBrowserRouter([
       ...outingRoutes,
 
       // 03 성찰하기 (아카이브, 나의 변화, 도움 받기 등)
+      { path: PATHS.ARCHIVE, element: <ArchivePage /> },
+      { path: PATHS.CHANGES, element: <ChangesPage /> },
+      { path: PATHS.HELP, element: <HelpPage /> },
+      { path: PATHS.RECORD_DETAIL, element: <RecordDetailPage /> },
 
       // 00 회원가입 · 로그인 · 기본값 설문 (app/routes/onboardingRoutes.tsx)
       ...onboardingRoutes,

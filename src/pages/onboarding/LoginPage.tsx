@@ -7,10 +7,12 @@ import TextField from '@/components/ui/TextField'
 import { PATHS } from '@/constants/paths'
 import FieldMessage from '@/pages/onboarding/components/FieldMessage'
 import { useAuthStore } from '@/stores/authStore'
+import { useUserDefaultsStore } from '@/stores/userDefaultsStore'
+import { MOCK_USER_DEFAULTS } from '@/mocks/data'
 
 const FORM_ID = 'login-form'
 
-/** 00 인증 / 로그인 → 홈 (설문을 안 마쳤으면 AuthGate가 설문으로 보낸다) */
+/** 00 인증 / 목업 로그인 → 홈 */
 export default function LoginPage() {
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
@@ -28,6 +30,7 @@ export default function LoginPage() {
       setFailed(true)
       return
     }
+    useUserDefaultsStore.getState().setDefaults(MOCK_USER_DEFAULTS)
     navigate(PATHS.HOME, { replace: true })
   }
 

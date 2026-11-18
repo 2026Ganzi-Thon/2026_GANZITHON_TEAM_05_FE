@@ -4,7 +4,8 @@ import ChoiceChipGroup from '@/components/ui/ChoiceChipGroup'
 import { PATHS } from '@/constants/paths'
 import { useOutingStore, type OutingSession } from '@/stores/outingStore'
 import { useUserDefaultsStore } from '@/stores/userDefaultsStore'
-import { todayString, useCollectionStore } from '@/stores/collectionStore'
+import { todayString } from '@/stores/collectionStore'
+import { reconcileCollectionDays, resumableMissions, shortDate } from './history'
 import { cn } from '@/utils/cn'
 import { OUTING_SCREEN_PATHS } from './navigation'
 import { resolveOutingDefaults } from './defaults'
@@ -85,6 +86,8 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
     candidateId,
     review,
     recordId,
+    runId,
+    startedAt,
   } = session
   const setField =
     <K extends keyof OutingSession>(key: K) =>
@@ -111,28 +114,45 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
   const onNavigateExternal = (destination: 'collection' | 'reflection') =>
     navigate(destination === 'collection' ? PATHS.COLLECTION : PATHS.REFLECTION)
   const mission = missionById(missionId)
-  const energy = state.conditions.energy ?? effectiveDefaults.energy!
-  const places = mission.placeType === 'cafe' ? cafes : parks
-  const selectedPlace =
-    mission.placeType === 'store' ? store : (places.find((p) => p.id === placeId) ?? places[0])
+  const reusableDefaults = state.lastConditions ?? effectiveDefaults
+  const energy = state.conditions.energy ?? reusableDefaults.energy!
+  const places =
+    mission.placeType === 'store' ? [store] : mission.placeType === 'cafe' ? cafes : parks
+  const selectedPlace = places.find((p) => p.id === placeId) ?? places[0]
   const steps = mission.steps.map((step, index) =>
-    index === 2 && mission.placeType === 'park' ? `${selectedPlace.name} 도착하기` : step,
+    mission.placeType && index === 2
+      ? `${selectedPlace.name} 도착하기`
+      : mission.placeType === 'store' && index === 3
+        ? `${selectedPlace.name}에서 물건 구매하기`
+        : step,
   )
   const allDone = checked.length === mission.steps.length
   const shownTitle = mission.id === 'store' ? '편의점 다녀오기' : mission.title
   const summaryTitle = mission.id === 'store' ? '편의점 다녀오기' : mission.title
-  const summarySteps =
-    mission.id === 'store'
-      ? [
-          '신발 신기',
-          '현관 밖으로 나가기',
-          'CU 신사신구점 앞까지 가기',
-          'CU 신사신구점에서 물건 구매하기',
-          '집으로 돌아오기',
-        ]
-      : steps
-  const savedMission = state.savedMissions.find((m) => m.missionId === missionId)
-  const missionDate = resumed ? (savedMission?.date ?? '8월 31일') : '9월 1일'
+  const summarySteps = steps
+  const savedMission = state.savedMissions.find((m) => m.id === runId)
+  const missionDate = shortDate(startedAt || new Date().toISOString())
+  const saved = resumableMissions(state)
+
+  useEffect(() => {
+    // 후기를 저장한 뒤 브라우저 뒤로가기로 돌아와 같은 기록을 다시 만들지 않는다.
+    if (route.startsWith('review-') && !recordId) go('home')
+  }, [route, recordId, go])
+
+  useEffect(() => {
+    if (route !== 'loading') return
+    const conditions = {
+      ...reusableDefaults,
+      ...Object.fromEntries(Object.entries(state.conditions).filter(([, value]) => value !== null)),
+    } as Conditions
+    setState((prev) => ({
+      ...prev,
+      conditions,
+      lastConditions: { ...conditions, mood: null, barriers: [] },
+    }))
+    // 로딩 진입 한 번에 이번 외출의 조건을 확정한다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route])
 
   useEffect(() => {
     if (!['loading', 'location-loading'].includes(route)) return
@@ -158,10 +178,10 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
     setState((prev) => ({
       ...prev,
       resting: false,
-      conditions: { ...prev.conditions, mood: null, barriers: [] },
+      conditions: { ...(prev.lastConditions ?? emptyConditions), mood: null, barriers: [] },
     }))
     setRecordId(null)
-    setReview({ ...emptyReview, mood: '0' })
+    setReview({ ...emptyReview })
     go('conditions-1')
   }
   function back() {
@@ -175,7 +195,7 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
       resume: 'home',
       defaults: 'conditions-4',
       recommendations: 'conditions-4',
-      detail: 'recommendations',
+      detail: 'places',
       places: 'recommendations',
       problem: 'active',
       alternatives: 'active',
@@ -198,10 +218,14 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
         step === 1
           ? { mood: null }
           : step === 2
-            ? { energy: null }
+            ? { energy: reusableDefaults.energy }
             : step === 3
               ? { barriers: [] }
-              : { distance: null, time: null, budget: null },
+              : {
+                  distance: reusableDefaults.distance,
+                  time: reusableDefaults.time,
+                  budget: reusableDefaults.budget,
+                },
       )
     if (step < 4) go(`conditions-${step + 1}` as Screen)
     else {
@@ -218,30 +242,43 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
     }
   }
   function selectMission(next: Mission) {
+    updateSession('runId', crypto.randomUUID())
+    updateSession('startedAt', new Date().toISOString())
     setMissionId(next.id)
     setResumed(false)
     setChecked([])
     setRecordId(null)
-    setReview({ ...emptyReview, mood: '0' })
-    setPlaceId(next.placeType === 'cafe' ? cafes[0].id : parks[0].id)
-    if (next.placeType === 'park' || next.placeType === 'cafe') setModal('location')
-    else go('detail')
+    setReview({ ...emptyReview })
+    setPlaceId(
+      next.placeType === 'store' ? store.id : next.placeType === 'cafe' ? cafes[0].id : parks[0].id,
+    )
+    if (next.placeType) setModal('location')
+    else go('active')
   }
   function resumeMission(saved: SavedMission) {
+    updateSession('runId', saved.id)
+    updateSession('startedAt', saved.startedAt)
     setMissionId(saved.missionId)
     setChecked(saved.checked)
     setPlaceId(saved.placeId)
     setResumed(true)
     setRecordId(null)
-    setReview({ ...emptyReview, mood: '0' })
+    setReview({ ...emptyReview })
     go('active')
   }
   function saveProgress() {
     setState((prev) => ({
       ...prev,
       savedMissions: [
-        ...prev.savedMissions.filter((s) => s.missionId !== missionId),
-        { missionId, checked: [...checked], date: missionDate, placeId },
+        ...prev.savedMissions.filter((s) => s.id !== runId),
+        {
+          id: runId,
+          missionId,
+          checked: [...checked],
+          date: missionDate,
+          startedAt: startedAt || new Date().toISOString(),
+          placeId,
+        },
       ],
     }))
   }
@@ -252,6 +289,14 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
       title: summaryTitle,
       checked: [...checked],
       completed: allDone,
+      runId,
+      startedAt: startedAt || new Date().toISOString(),
+      mission: {
+        ...mission,
+        steps,
+        distance: mission.placeType ? selectedPlace.walk : mission.distance,
+      },
+      place: mission.placeType ? selectedPlace : undefined,
       ...review,
       mood: review.mood === null ? null : reviewMoodOptions[Number(review.mood)],
     })
@@ -260,16 +305,23 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
       return {
         ...prev,
         savedMissions: allDone
-          ? prev.savedMissions.filter((s) => s.missionId !== missionId)
+          ? prev.savedMissions.filter((s) => s.id !== runId)
           : [
-              ...prev.savedMissions.filter((s) => s.missionId !== missionId),
-              { missionId, checked: [...checked], date: missionDate, placeId },
+              ...prev.savedMissions.filter((s) => s.id !== runId),
+              {
+                id: runId,
+                missionId,
+                checked: [...checked],
+                date: missionDate,
+                startedAt: startedAt || new Date().toISOString(),
+                placeId,
+              },
             ],
         records: [...prev.records.filter((r) => r.id !== id), record],
       }
     })
     setRecordId(id)
-    if (record.completed) useCollectionStore.getState().markDayCompleted(todayString())
+    reconcileCollectionDays(useOutingStore.getState().state)
     go('review-mood')
   }
   function finishReview() {
@@ -292,6 +344,14 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
         title: summaryTitle,
         checked: [...checked],
         completed: allDone,
+        runId,
+        startedAt: startedAt || new Date().toISOString(),
+        mission: {
+          ...mission,
+          steps,
+          distance: mission.placeType ? selectedPlace.walk : mission.distance,
+        },
+        place: mission.placeType ? selectedPlace : undefined,
         ...review,
         mood: review.mood === null ? null : reviewMoodOptions[Number(review.mood)],
       })
@@ -299,16 +359,20 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
         ...prev,
         records: [...prev.records, record],
       }))
-      if (record.completed) useCollectionStore.getState().markDayCompleted(todayString())
+      reconcileCollectionDays(useOutingStore.getState().state)
     }
     setToast('외출 기록을 저장했어요')
-    setReview({ ...emptyReview, mood: '0' })
+    setReview({ ...emptyReview })
     setRecordId(null)
     go('home')
   }
   function confirmModal() {
     if (modal === 'rest') {
-      setState((prev) => ({ ...prev, resting: true }))
+      setState((prev) => ({
+        ...prev,
+        resting: true,
+        restDates: [...new Set([...prev.restDates, todayString()])],
+      }))
       setToast('오늘은 충분히 쉬어가요')
       setModal(null)
     }
@@ -317,7 +381,7 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
     if (modal === 'stop') {
       setState((prev) => ({
         ...prev,
-        savedMissions: prev.savedMissions.filter((s) => s.missionId !== missionId),
+        savedMissions: prev.savedMissions.filter((s) => s.id !== runId),
       }))
       setToast('미션을 그만했어요')
       go('home')
@@ -327,6 +391,17 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
       go('summary')
     }
     if (modal === 'change') {
+      const removedDates = state.records
+        .filter((record) => record.runId === runId)
+        .map((record) => todayString(new Date(record.createdAt)))
+      setState((prev) => ({
+        ...prev,
+        savedMissions: prev.savedMissions.filter((saved) => saved.id !== runId),
+        records: prev.records.filter((record) => record.runId !== runId),
+      }))
+      reconcileCollectionDays(useOutingStore.getState().state, removedDates)
+      updateSession('runId', crypto.randomUUID())
+      updateSession('startedAt', new Date().toISOString())
       setMissionId(candidateId)
       setChecked([])
       setResumed(false)
@@ -353,6 +428,14 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
         onStart={start}
         onResume={() => go('resume')}
         onRest={() => setModal('rest')}
+        onStop={(saved) => {
+          updateSession('runId', saved.id)
+          updateSession('startedAt', saved.startedAt)
+          setMissionId(saved.missionId)
+          setChecked(saved.checked)
+          setResumed(true)
+          setModal('stop')
+        }}
         onNavigateExternal={onNavigateExternal}
       />
     )
@@ -361,14 +444,11 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
       <Page {...pageProps}>
         <Heading title="이어할 미션이 있어요" subtitle="멈췄던 단계부터 다시 시작할 수 있어요" />
         <div className="lt-body lt-body--resume">
-          {state.savedMissions.map((saved) => (
-            <Card
-              key={saved.missionId}
-              title={missionById(saved.missionId).title.replace('집 앞 ', '')}
-            >
+          {saved.map((saved) => (
+            <Card key={saved.id} title={missionById(saved.missionId).title.replace('집 앞 ', '')}>
               <InfoRows
                 rows={[
-                  ['시작일', saved.date],
+                  ['시작일', shortDate(saved.startedAt)],
                   ['완료한 단계', `${saved.checked.length}개`],
                   [
                     '남은 단계',
@@ -381,6 +461,8 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
                 <Button
                   variant="secondary"
                   onClick={() => {
+                    updateSession('runId', saved.id)
+                    updateSession('startedAt', saved.startedAt)
                     setMissionId(saved.missionId)
                     setChecked(saved.checked)
                     setResumed(true)
@@ -392,7 +474,7 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
               </div>
             </Card>
           ))}
-          {!state.savedMissions.length && (
+          {!saved.length && (
             <Card
               title="이어할 미션이 아직 없어요"
               description="새로운 미션으로 작은 외출을 시작해봐요"
@@ -428,7 +510,7 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
         onSkip={() => {
           setState((prev) => ({
             ...prev,
-            conditions: structuredClone(emptyConditions),
+            conditions: { ...reusableDefaults, mood: null, barriers: [] },
           }))
           go('defaults')
         }}
@@ -490,7 +572,7 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
     )
   } else if (route === 'defaults') {
     const conditions = {
-      ...effectiveDefaults,
+      ...reusableDefaults,
       ...Object.fromEntries(Object.entries(state.conditions).filter(([, value]) => value !== null)),
     } as Conditions
     screen = (
@@ -653,7 +735,7 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
             <Button
               onClick={() => {
                 setChecked([])
-                go('active')
+                go('detail')
               }}
             >
               이 장소로 할게요
@@ -720,24 +802,15 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
         <Heading
           eyebrow={`${mission.level}단계 미션`}
           title={mission.id === 'store' ? '집 앞 편의점\n다녀오기' : mission.title}
-          subtitle="9월 1일"
+          subtitle={missionDate}
         />
         <div className="lt-body lt-body--detail">
-          <NumberedSteps
-            title="이렇게 해볼 수 있어요"
-            steps={
-              mission.id === 'store'
-                ? [
-                    '신발 신기',
-                    '현관 밖으로 나가기',
-                    '편의점에 도착하기',
-                    '원하는 물건 구매하기',
-                    '집으로 돌아오기',
-                  ]
-                : steps
-            }
+          <NumberedSteps title="이렇게 해볼 수 있어요" steps={steps} />
+          <Metrics
+            distance={mission.placeType ? selectedPlace.walk : mission.distance}
+            time={mission.time}
+            budget={mission.budget}
           />
-          <Metrics distance={mission.distance} time={mission.time} budget={mission.budget} />
         </div>
         {mission.placeType && (
           <PlaceInfo place={selectedPlace} park={mission.placeType !== 'store'} />
@@ -794,7 +867,9 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
           />
           <p className="lt-hint lt-trim">처음부터 다시 해도 이전 성공 기록은 지워지지 않아요</p>
         </div>
-        {mission.placeType === 'park' && !resumed && <PlaceInfo place={selectedPlace} park />}
+        {mission.placeType && (
+          <PlaceInfo place={selectedPlace} park={mission.placeType !== 'store'} />
+        )}
       </Page>
     )
   else if (route === 'summary')
@@ -820,7 +895,11 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
         <Heading eyebrow={summaryTitle} title="아래의 수행 내역을 저장할게요" />
         <div className="lt-body lt-body--detail">
           <NumberedSteps steps={summarySteps} checked={checked} />
-          <Metrics distance={mission.distance} time="8분" budget="0원" />
+          <Metrics
+            distance={mission.placeType ? selectedPlace.walk : mission.distance}
+            time={mission.time}
+            budget={mission.budget}
+          />
         </div>
         {mission.placeType && (
           <PlaceInfo place={selectedPlace} park={mission.placeType !== 'store'} />
@@ -927,7 +1006,7 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
     )
 
   const modalCopy: Record<ModalKind, [string, string, string]> = {
-    rest: ['오늘은 쉬어도 돼요', '오늘 충분한 휴식을 갖고,\n내일은 미션을 도전해봐요!', '72:8395'],
+    rest: ['오늘은 쉬어갈까요?', '오늘 충분한 휴식을 갖고,\n내일은 미션을 도전해봐요!', '72:8395'],
     exit: [
       '설정을 나갈까요?',
       '지금까지 선택한 조건을 이어서 입력하거나\n홈으로 돌아갈 수 있어요',
@@ -945,7 +1024,7 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
     ],
     location: [
       '주변 장소를 찾으려면\n위치 정보가 필요해요',
-      '요청을 거절하면 서비스를 이용할 수 없어요',
+      '거절하면 미션 선택으로 돌아가요.\n장소가 없는 미션은 계속 이용할 수 있어요.',
       '72:9265',
     ],
     change: [

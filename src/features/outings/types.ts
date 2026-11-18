@@ -40,9 +40,11 @@ export interface Mission {
   placeType?: 'store' | 'park' | 'cafe'
 }
 export interface SavedMission {
+  id: string
   missionId: string
   checked: number[]
   date: string
+  startedAt: string
   placeId: string
 }
 export interface ReviewDraft {
@@ -58,12 +60,19 @@ export interface OutingRecord extends ReviewDraft {
   checked: number[]
   completed: boolean
   createdAt: string
+  runId?: string
+  startedAt?: string
+  mission?: Mission
+  place?: Place
+  hidden?: boolean
 }
 export interface MockState {
   conditions: Conditions
   savedMissions: SavedMission[]
   records: OutingRecord[]
   resting: boolean
+  restDates: string[]
+  lastConditions?: Conditions
 }
 export interface Place {
   id: string

@@ -98,7 +98,7 @@ export default function Modal({
             aria-labelledby={labelledBy}
             aria-describedby={describedBy}
             className={cn(
-              'flex w-full max-w-[362px] flex-col gap-[15px] rounded-popup bg-white p-[15px]',
+              'flex max-h-[calc(100dvh-40px)] w-full max-w-[362px] flex-col gap-[15px] overflow-y-auto overscroll-contain rounded-popup bg-white p-[15px]',
               className,
             )}
             initial={{ opacity: 0, scale: 0.96, y: 8 }}

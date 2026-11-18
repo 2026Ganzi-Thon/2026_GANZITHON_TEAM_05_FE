@@ -7,6 +7,7 @@ import { DAYS_PER_FLOWER, todayString, useCollectionStore } from '@/stores/colle
 import { useOutingStore } from '@/stores/outingStore'
 import { FLOWERS } from '@/constants/flowers'
 import { PATHS } from '@/constants/paths'
+import { reconcileCollectionDays } from '@/features/outings/history'
 
 const subscribe = (onChange: () => void) => router.subscribe(onChange)
 const getPathname = () => router.state.location.pathname
@@ -27,13 +28,8 @@ export default function FlowerRewardPopup() {
   // "다음 앱 실행 때 지급" (기획서 3-10): 앱이 시작될 때 한 번만 확인
   useEffect(() => {
     const collection = useCollectionStore.getState()
-    // 통합 전 저장한 전체 완료 기록도 일수에 반영한다. 일부 완료는 제외한다.
-    for (const record of useOutingStore.getState().state.records) {
-      const completedAt = new Date(record.createdAt)
-      if (record.completed && Number.isFinite(completedAt.getTime())) {
-        collection.markDayCompleted(todayString(completedAt))
-      }
-    }
+    // 예시 기록과 완료 일수를 맞춘다. 브라우저 저장소는 사용하지 않는다.
+    reconcileCollectionDays(useOutingStore.getState().state)
     collection.syncRewards(todayString())
   }, [])
 
@@ -50,7 +46,7 @@ export default function FlowerRewardPopup() {
 
   return (
     <Modal open={open} onClose={close} labelledBy={titleId}>
-      <div className="flex flex-col gap-[10px] p-[5px]">
+      <div className="page-title flex flex-col gap-[10px] p-[5px]">
         <h2 id={titleId} className="p-[5px] text-heading font-semibold text-ink">
           {DAYS_PER_FLOWER}일 달성으로
           <br />
@@ -61,7 +57,7 @@ export default function FlowerRewardPopup() {
       </div>
       <div className="flex flex-col items-center gap-[20px] px-[20px] pb-[20px]">
         <FlowerIcon id={flower.id} owned />
-        <span className="text-body font-medium text-ink/50">{flower.name}</span>
+        <span className="trim-text text-body font-medium text-ink/50">{flower.name}</span>
       </div>
       <div className="flex gap-[10px]">
         <Button variant="secondary" className="flex-1" onClick={goCollection}>

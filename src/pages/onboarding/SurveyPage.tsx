@@ -86,7 +86,7 @@ function SurveyStep({ step }: { step: number }) {
             onChange={draft.setDuration}
           />
           <ChoiceChipGroup
-            title="사용 가능한 금액"
+            title="사용 가능한 예산"
             options={BUDGET_OPTIONS}
             value={draft.budget}
             onChange={draft.setBudget}
