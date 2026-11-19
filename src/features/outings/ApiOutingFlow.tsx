@@ -1129,7 +1129,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
           }
         >
           <Heading
-            title="외출 후 기분은 어떤가요?"
+            title="미션 후 기분은 어떤가요?"
             subtitle="고르지 않아도 성공 기록은 그대로 남아요"
             progress={{ current: 1, total: 2 }}
           />
@@ -1139,7 +1139,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
             onChange={(index) =>
               useApiMissionStore.setState({ review: { ...api.review, mood: String(index) } })
             }
-            label="외출 후 기분"
+            label="미션 후 기분"
           />
         </Page>
       )

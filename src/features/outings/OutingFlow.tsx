@@ -937,14 +937,14 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
       >
         <Heading
           progress={{ current: 1, total: 2 }}
-          title="외출 후 기분은 어떤가요?"
+          title="미션 후 기분은 어떤가요?"
           subtitle="고르지 않아도 성공 기록은 그대로 남아요"
         />
         <Choices
           options={reviewMoodOptions}
           selected={review.mood === null ? [] : [Number(review.mood)]}
           onChange={(i) => setReview((prev) => ({ ...prev, mood: String(i) }))}
-          label="외출 후 기분"
+          label="미션 후 기분"
         />
       </Page>
     )

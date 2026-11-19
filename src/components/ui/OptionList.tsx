@@ -53,7 +53,7 @@ interface OptionListProps<T> {
 }
 
 /**
- * 세로 선택지 목록 — 하나만 선택 (기분, 에너지, 외출 후 기분, 상황 변화 등).
+ * 세로 선택지 목록 — 하나만 선택 (기분, 에너지, 미션 후 기분, 상황 변화 등).
  *
  * @example
  * <OptionList options={MOOD_OPTIONS} value={mood} onChange={setMood} />
