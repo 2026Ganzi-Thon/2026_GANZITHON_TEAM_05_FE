@@ -22,6 +22,6 @@ export function resolveOutingDefaults(value: OutingConditions | null): Condition
       DISTANCE_OPTIONS.find((option) => option.value === defaults.distance)?.label ?? '10분 이내',
     time: DURATION_OPTIONS.find((option) => option.value === defaults.duration)?.label ?? '30분',
     budget:
-      BUDGET_OPTIONS.find((option) => option.value === defaults.budget)?.label ?? '5,000원 이하',
+      BUDGET_OPTIONS.find((option) => option.value === defaults.budget)?.label ?? '10,000원 이하',
   }
 }

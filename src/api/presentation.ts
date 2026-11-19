@@ -48,8 +48,8 @@ const timeMap: Record<Duration, ApiConditions['timeLimit']> = {
 }
 const budgetMap: Record<Budget, ApiConditions['budgetLimit']> = {
   FREE: 0,
-  UNDER_5000: 5000,
   UNDER_10000: 10000,
+  UNDER_50000: 50000,
   ANY: null,
 }
 function reverse<K extends string, V>(map: Record<K, V>, value: V, fallback: K): K {
@@ -72,7 +72,8 @@ export function fromApiDefaults(value: ApiConditions): OutingConditions {
     barriers: value.barriers.map((barrier) => reverse(barrierMap, barrier, 'NO_REASON')),
     distance: reverse(distanceMap, value.distanceLimit, 'WITHIN_10'),
     duration: reverse(timeMap, value.timeLimit, 'MIN_30'),
-    budget: reverse(budgetMap, value.budgetLimit, 'UNDER_5000'),
+    // 예전 선택지(5,000원 이하)로 저장된 값은 새 기본값인 10,000원 이하로 읽는다.
+    budget: reverse(budgetMap, value.budgetLimit, 'UNDER_10000'),
   }
 }
 export function toApiConditions(
