@@ -281,7 +281,15 @@ export function Metrics({
     </dl>
   )
 }
-export function PlaceInfo({ place, park = false }: { place: Place; park?: boolean }) {
+export function PlaceInfo({
+  place,
+  park = false,
+  currentPosition,
+}: {
+  place: Place
+  park?: boolean
+  currentPosition?: { lat: number; lng: number } | null
+}) {
   const places = useMemo(() => [place], [place])
   return (
     <section className="lt-place-info">
@@ -289,7 +297,12 @@ export function PlaceInfo({ place, park = false }: { place: Place; park?: boolea
         <h2 className="lt-trim">장소 정보</h2>
         <p className="lt-trim">{place.address}</p>
       </div>
-      <OutingMap places={places} selectedPlaceId={place.id} park={park} />
+      <OutingMap
+        places={places}
+        selectedPlaceId={place.id}
+        park={park}
+        currentPosition={currentPosition}
+      />
     </section>
   )
 }

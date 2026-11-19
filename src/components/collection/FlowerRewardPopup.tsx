@@ -8,6 +8,8 @@ import { useOutingStore } from '@/stores/outingStore'
 import { FLOWERS } from '@/constants/flowers'
 import { PATHS } from '@/constants/paths'
 import { reconcileCollectionDays } from '@/features/outings/history'
+import { isApiEnabled } from '@/api/config'
+import ApiFlowerRewardPopup from './ApiFlowerRewardPopup'
 
 const subscribe = (onChange: () => void) => router.subscribe(onChange)
 const getPathname = () => router.state.location.pathname
@@ -20,6 +22,9 @@ const getPathname = () => router.state.location.pathname
  * App.tsx에서 RouterProvider 옆에 한 번만 둔다. 홈 화면 코드는 건드리지 않는다.
  */
 export default function FlowerRewardPopup() {
+  return isApiEnabled ? <ApiFlowerRewardPopup /> : <MockFlowerRewardPopup />
+}
+function MockFlowerRewardPopup() {
   const pathname = useSyncExternalStore(subscribe, getPathname)
   const pending = useCollectionStore((s) => s.pendingRewards)
   const dismissReward = useCollectionStore((s) => s.dismissReward)

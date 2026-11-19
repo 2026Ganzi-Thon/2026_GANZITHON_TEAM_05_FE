@@ -2,6 +2,19 @@ import { create } from 'zustand'
 import { emptyReview } from '@/features/outings/mockData'
 import { createMockOutingState } from '@/mocks/data'
 import type { MockState, ReviewDraft } from '@/features/outings/types'
+import { isApiEnabled } from '@/api/config'
+import { emptyConditions } from '@/features/outings/mockData'
+
+const initialState = (): MockState =>
+  isApiEnabled
+    ? {
+        conditions: structuredClone(emptyConditions),
+        savedMissions: [],
+        records: [],
+        resting: false,
+        restDates: [],
+      }
+    : createMockOutingState()
 
 export interface OutingSession {
   runId: string
@@ -39,7 +52,7 @@ interface OutingStore {
 }
 /** 현재 페이지에서만 동작하는 메모리 목업. 새로고침하면 예시 데이터로 돌아간다. */
 export const useOutingStore = create<OutingStore>((set) => ({
-  state: createMockOutingState(),
+  state: initialState(),
   session: structuredClone(initialSession),
   setMockState: (update) =>
     set((store) => ({
@@ -52,5 +65,5 @@ export const useOutingStore = create<OutingStore>((set) => ({
         [key]: typeof update === 'function' ? update(store.session[key]) : update,
       },
     })),
-  reset: () => set({ state: createMockOutingState(), session: structuredClone(initialSession) }),
+  reset: () => set({ state: initialState(), session: structuredClone(initialSession) }),
 }))

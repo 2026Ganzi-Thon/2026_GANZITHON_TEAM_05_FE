@@ -13,13 +13,17 @@ const labels = { complete: '모두 완료', partial: '일부 완료', rest: '안
 export default function MissionCalendar({
   statuses,
   onMonthChange,
+  month: controlledMonth,
 }: {
   statuses: Record<string, DayStatus>
   onMonthChange?: (month: string) => void
+  month?: string
 }) {
   const [offset, setOffset] = useState(0)
   const [now] = useState(() => new Date())
-  const date = new Date(now.getFullYear(), now.getMonth() + offset, 1)
+  const date = controlledMonth
+    ? new Date(`${controlledMonth}-01T12:00:00`)
+    : new Date(now.getFullYear(), now.getMonth() + offset, 1)
   const year = date.getFullYear(),
     month = date.getMonth()
   const first = date.getDay(),

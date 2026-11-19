@@ -457,6 +457,24 @@
   overflow: hidden;
   border-radius: 20px;
 }
+.lt-map-unavailable {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: var(--lt-card);
+  color: var(--lt-muted);
+  text-align: center;
+}
+.lt-api-error {
+  color: #dc4545;
+  white-space: pre-line;
+  padding: 5px;
+  font-size: 14px;
+}
+.lt-api-home-state {
+  padding-top: calc(100px + env(safe-area-inset-top));
+}
 .lt-map-pin {
   display: grid;
   place-items: center;

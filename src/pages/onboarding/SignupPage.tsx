@@ -9,6 +9,9 @@ import { surveyPath } from '@/constants/paths'
 import { useAuthStore } from '@/stores/authStore'
 import { useOnboardingDraftStore } from '@/stores/onboardingDraftStore'
 import { useUserDefaultsStore } from '@/stores/userDefaultsStore'
+import { isApiEnabled } from '@/api/config'
+import { authApi } from '@/api/endpoints'
+import { apiErrorMessage } from '@/api/errors'
 
 const FORM_ID = 'signup-form'
 
@@ -22,31 +25,54 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [idTaken, setIdTaken] = useState(false)
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState('')
 
   const isMismatch = passwordConfirm !== '' && password !== passwordConfirm
-  const canSubmit = id.trim() !== '' && password !== '' && password === passwordConfirm
+  const canSubmit =
+    id.trim() !== '' &&
+    password !== '' &&
+    password === passwordConfirm &&
+    (!isApiEnabled ||
+      (/^[A-Za-z0-9_]{3,80}$/.test(id.trim()) && password.length >= 8 && password.length <= 128))
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!canSubmit) return
-    if (!signup(id.trim(), password)) {
-      setIdTaken(true)
-      return
+    if (!canSubmit || pending) return
+    setError('')
+    setPending(true)
+    try {
+      if (isApiEnabled) {
+        const response = await authApi.signup(id.trim(), password, passwordConfirm)
+        useAuthStore.getState().setSession(response, false)
+      } else if (!signup(id.trim(), password)) {
+        setIdTaken(true)
+        return
+      }
+      resetDraft()
+      useUserDefaultsStore.getState().reset()
+      navigate(surveyPath(1), { replace: true })
+    } catch (error) {
+      setError(apiErrorMessage(error))
+    } finally {
+      setPending(false)
     }
-    resetDraft()
-    useUserDefaultsStore.getState().reset()
-    navigate(surveyPath(1), { replace: true })
   }
 
   return (
     <Screen
       bottom={
-        <Button type="submit" form={FORM_ID} disabled={!canSubmit}>
-          다음
+        <Button type="submit" form={FORM_ID} disabled={!canSubmit || pending}>
+          {pending ? '가입하는 중이에요' : '다음'}
         </Button>
       }
     >
       <PageTitle title="회원가입" />
+      {isApiEnabled && (
+        <p className="px-[25px] text-caption text-ink/50">
+          아이디는 영문·숫자·밑줄 3~80자, 비밀번호는 8~128자로 입력해 주세요.
+        </p>
+      )}
       <form
         id={FORM_ID}
         onSubmit={handleSubmit}
@@ -63,6 +89,7 @@ export default function SignupPage() {
           placeholder="아이디"
           autoComplete="username"
           autoCapitalize="none"
+          maxLength={80}
         />
         {idTaken && <FieldMessage>이미 사용 중인 아이디예요</FieldMessage>}
         <TextField
@@ -72,6 +99,7 @@ export default function SignupPage() {
           onChange={setPassword}
           placeholder="000000"
           autoComplete="new-password"
+          maxLength={128}
         />
         <TextField
           label="비밀번호 확인"
@@ -80,8 +108,10 @@ export default function SignupPage() {
           onChange={setPasswordConfirm}
           placeholder="000000"
           autoComplete="new-password"
+          maxLength={128}
         />
         {isMismatch && <FieldMessage>비밀번호가 서로 달라요</FieldMessage>}
+        {error && <FieldMessage>{error}</FieldMessage>}
       </form>
     </Screen>
   )

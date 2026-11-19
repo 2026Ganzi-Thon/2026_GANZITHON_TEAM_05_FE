@@ -10,14 +10,74 @@ import archiveIcon from '@/assets/reflection/archive.svg'
 import changesIcon from '@/assets/reflection/changes.svg'
 import helpIcon from '@/assets/reflection/help.svg'
 import '@/features/outings/letit.css'
+import { isApiEnabled } from '@/api/config'
+import { useReflectionQueries } from '@/api/queries'
+import { calendarStatuses } from '@/api/dashboard'
+import ApiFeedback from '@/components/ui/ApiFeedback'
+import type { DayStatus } from '@/features/outings/history'
 
 export default function ReflectionPage() {
+  return isApiEnabled ? <ApiReflectionPage /> : <MockReflectionPage />
+}
+function ApiReflectionPage() {
+  const [month, setMonth] = useState(todayString().slice(0, 7))
+  const { summary, calendar } = useReflectionQueries(month)
+  const error = summary.error ?? calendar.error
+  const loading = summary.isPending || calendar.isPending
+  return (
+    <ReflectionView
+      month={month}
+      setMonth={setMonth}
+      statuses={calendarStatuses(calendar.data)}
+      counts={summary.data?.counts}
+      feedback={
+        loading || error ? (
+          <ApiFeedback
+            loading={loading && !error}
+            error={error}
+            onRetry={() => {
+              void summary.refetch()
+              void calendar.refetch()
+            }}
+          />
+        ) : null
+      }
+    />
+  )
+}
+function MockReflectionPage() {
   const state = useOutingStore((store) => store.state)
   const statuses = dailyStatuses(state)
   const [month, setMonth] = useState(todayString().slice(0, 7))
   const days = Object.entries(statuses)
     .filter(([date]) => date.startsWith(month))
     .map(([, status]) => status)
+  return (
+    <ReflectionView
+      month={month}
+      setMonth={setMonth}
+      statuses={statuses}
+      counts={{
+        completed: days.filter((day) => day === 'complete').length,
+        partial: days.filter((day) => day === 'partial').length,
+        notCompleted: days.filter((day) => day === 'rest').length,
+      }}
+    />
+  )
+}
+function ReflectionView({
+  month,
+  setMonth,
+  statuses,
+  counts,
+  feedback,
+}: {
+  month: string
+  setMonth: (month: string) => void
+  statuses: Record<string, DayStatus>
+  counts?: { completed: number; partial: number; notCompleted: number }
+  feedback?: React.ReactNode
+}) {
   const menus = [
     [PATHS.ARCHIVE, archiveIcon, '아카이브', '최근 기록, 한 줄 후기, 기록 삭제'],
     [PATHS.CHANGES, changesIcon, '나의 변화', '처음과 최근, 거리 변화, 단계별 성공'],
@@ -31,20 +91,21 @@ export default function ReflectionPage() {
         className="pt-[100px]"
       />
       <div className="lt-body lt-reflection-calendar">
-        <MissionCalendar statuses={statuses} onMonthChange={setMonth} />
+        <MissionCalendar month={month} statuses={statuses} onMonthChange={setMonth} />
         <dl className="lt-metrics">
           {[
-            ['모두 완료', 'complete'],
+            ['모두 완료', 'completed'],
             ['일부 완료', 'partial'],
-            ['미완료', 'rest'],
+            ['미완료', 'notCompleted'],
           ].map(([label, status]) => (
             <div key={status}>
               <dt className="lt-trim">{label}</dt>
-              <dd className="lt-trim">{days.filter((day) => day === status).length}일</dd>
+              <dd className="lt-trim">{counts ? counts[status as keyof typeof counts] : '—'}일</dd>
             </div>
           ))}
         </dl>
       </div>
+      {feedback}
       <div className="lt-divider" />
       <nav aria-label="성찰 메뉴" className="lt-reflection-menu">
         {menus.map(([path, icon, title, description]) => (

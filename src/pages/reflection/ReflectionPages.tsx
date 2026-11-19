@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
 import {
   Button,
@@ -18,29 +18,14 @@ import { todayString } from '@/stores/collectionStore'
 import MissionStats from '@/components/ui/MissionStats'
 import { PATHS, recordPath } from '@/constants/paths'
 import '@/features/outings/letit.css'
+import { isApiEnabled } from '@/api/config'
+import { ApiArchivePage, ApiChangesPage, ApiRecordDetailPage } from './ApiReflectionPages'
+import Frame from './ReflectionFrame'
 
-function Frame({
-  title,
-  description,
-  node,
-  children,
-}: {
-  title: string
-  description?: string
-  node: string
-  children: ReactNode
-}) {
-  const navigate = useNavigate()
-  return (
-    <div className="lt-app">
-      <Page nodeId={node} onBack={() => navigate(PATHS.REFLECTION)}>
-        <Heading title={title} subtitle={description} />
-        {children}
-      </Page>
-    </div>
-  )
-}
 export function ArchivePage() {
+  return isApiEnabled ? <ApiArchivePage /> : <MockArchivePage />
+}
+function MockArchivePage() {
   const navigate = useNavigate()
   const { state, setMockState } = useOutingStore()
   const [deleting, setDeleting] = useState<OutingRecord | null>(null)
@@ -138,6 +123,9 @@ export function ArchivePage() {
   )
 }
 export function ChangesPage() {
+  return isApiEnabled ? <ApiChangesPage /> : <MockChangesPage />
+}
+function MockChangesPage() {
   const records = useOutingStore((store) => store.state.records)
   const distances = [...records]
     .filter((record) => record.place)
@@ -222,6 +210,9 @@ export function HelpPage() {
   )
 }
 export function RecordDetailPage() {
+  return isApiEnabled ? <ApiRecordDetailPage /> : <MockRecordDetailPage />
+}
+function MockRecordDetailPage() {
   const navigate = useNavigate()
   const { recordId } = useParams()
   const record = useOutingStore((store) =>

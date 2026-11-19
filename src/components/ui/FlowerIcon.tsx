@@ -13,13 +13,14 @@ interface FlowerIconProps {
   /** 지름(px). 기본 90 */
   size?: number
   className?: string
+  name?: string
 }
 
 /**
  * 도감 꽃 아이콘 (동그라미 + 꽃 모양).
  * 피그마 원본 보유·미보유 SVG를 사용한다. 보유 아이콘의 2px 외곽 테두리도 보존한다.
  */
-export default function FlowerIcon({ id, owned, size = 90, className }: FlowerIconProps) {
+export default function FlowerIcon({ id, owned, size = 90, className, name }: FlowerIconProps) {
   const flower = FLOWERS[id - 1]
   const src =
     flowerImages[
@@ -29,7 +30,7 @@ export default function FlowerIcon({ id, owned, size = 90, className }: FlowerIc
   return (
     <div
       role="img"
-      aria-label={owned ? flower.name : '아직 얻지 못한 꽃'}
+      aria-label={owned ? (name ?? flower.name) : '아직 얻지 못한 꽃'}
       className={cn('relative shrink-0', className)}
       style={{ width: size, height: size }}
     >
