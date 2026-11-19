@@ -59,12 +59,9 @@ export function ApiArchivePage() {
   }
   return (
     <Frame title="아카이브" node="72:9963">
-      {query.isPending || (query.error && !query.data) ? (
-        <ApiFeedback
-          loading={query.isPending}
-          error={query.error}
-          onRetry={() => void query.refetch()}
-        />
+      {/* 03 화면은 응답을 기다리는 동안 제목만 두고, 오류일 때만 재시도 카드를 보여 준다. */}
+      {query.isPending ? null : query.error && !query.data ? (
+        <ApiFeedback error={query.error} onRetry={() => void query.refetch()} />
       ) : (
         <div className="lt-body lt-archive">
           {!items.length && (
@@ -156,12 +153,8 @@ export function ApiChangesPage() {
   const distances = query.data?.distanceChanges ?? query.data?.distanceHistory ?? []
   return (
     <Frame title="나의 변화" node="72:10067">
-      {query.isPending || query.error ? (
-        <ApiFeedback
-          loading={query.isPending}
-          error={query.error}
-          onRetry={() => void query.refetch()}
-        />
+      {query.isPending ? null : query.error ? (
+        <ApiFeedback error={query.error} onRetry={() => void query.refetch()} />
       ) : (
         <div className="lt-body">
           <MissionStats records={[]} statistics={progressStatistics(query.data)} />
@@ -195,11 +188,7 @@ export function ApiRecordDetailPage() {
       <div className="lt-app">
         <Page nodeId="72:10190" onBack={() => navigate(PATHS.ARCHIVE)}>
           <Heading title="외출 기록" />
-          <ApiFeedback
-            loading={query.isPending}
-            error={query.error}
-            onRetry={() => void query.refetch()}
-          />
+          {query.error && <ApiFeedback error={query.error} onRetry={() => void query.refetch()} />}
         </Page>
       </div>
     )
