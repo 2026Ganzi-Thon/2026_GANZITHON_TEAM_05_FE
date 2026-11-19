@@ -80,7 +80,7 @@ export function toApiConditions(
   defaults: OutingConditions = DEFAULT_CONDITIONS,
 ): ApiConditions {
   return toApiDefaults({
-    mood: MOOD_OPTIONS.find((option) => option.label === value.mood)?.value ?? null,
+    mood: MOOD_OPTIONS.find((option) => option.label === value.mood)?.value ?? defaults.mood,
     energy: value.energy ?? defaults.energy,
     barriers: value.barriers.flatMap((label) => {
       const option = BARRIER_OPTIONS.find((option) => option.label === label)

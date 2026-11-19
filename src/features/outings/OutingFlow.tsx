@@ -123,7 +123,12 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
   const onNavigateExternal = (destination: 'collection' | 'reflection') =>
     navigate(destination === 'collection' ? PATHS.COLLECTION : PATHS.REFLECTION)
   const mission = missionById(missionId)
-  const reusableDefaults = state.lastConditions ?? effectiveDefaults
+  // 에너지·거리·시간·예산은 직전 외출 값을, 기분·망설이는 이유는 항상 가입 설문 값을 기본값으로 쓴다.
+  const reusableDefaults: Conditions = {
+    ...(state.lastConditions ?? effectiveDefaults),
+    mood: effectiveDefaults.mood,
+    barriers: effectiveDefaults.barriers,
+  }
   const energy = state.conditions.energy ?? reusableDefaults.energy!
   const places =
     mission.placeType === 'store' ? [store] : mission.placeType === 'cafe' ? cafes : parks
@@ -225,11 +230,11 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
     if (skip)
       updateConditions(
         step === 1
-          ? { mood: null }
+          ? { mood: reusableDefaults.mood }
           : step === 2
             ? { energy: reusableDefaults.energy }
             : step === 3
-              ? { barriers: [] }
+              ? { barriers: reusableDefaults.barriers }
               : {
                   distance: reusableDefaults.distance,
                   time: reusableDefaults.time,
@@ -519,7 +524,7 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
         onSkip={() => {
           setState((prev) => ({
             ...prev,
-            conditions: { ...reusableDefaults, mood: null, barriers: [] },
+            conditions: { ...reusableDefaults },
           }))
           go('defaults')
         }}
@@ -632,7 +637,7 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
               ]}
             />
           </Card>
-          <p className="lt-hint lt-trim">기분과 망설이는 이유는 매번 새로 선택할 수 있어요.</p>
+          <p className="lt-hint lt-trim">기분과 망설이는 이유는 가입할 때 고른 값을 사용해요.</p>
         </div>
       </Page>
     )
