@@ -7,7 +7,7 @@ interface ButtonProps extends ComponentProps<'button'> {
   /**
    * - primary: 민트 배경 (다음, 예, 시작하기)
    * - secondary: 회색 배경 (건너뛰기, 아니오)
-   * - text: 배경 없는 글자 버튼 (이미 사용해봤어요)
+   * - text: 배경 없는 글자 버튼
    */
   variant?: ButtonVariant
 }

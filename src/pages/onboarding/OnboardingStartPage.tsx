@@ -30,9 +30,16 @@ export default function OnboardingStartPage() {
       bottom={
         <>
           <Button onClick={() => navigate(PATHS.SIGNUP)}>Letit 시작하기</Button>
-          <Button variant="text" onClick={() => navigate(PATHS.LOGIN)}>
-            이미 사용해봤어요
-          </Button>
+          <p className="flex h-[30px] items-center justify-center gap-[6px] text-body text-ink/50">
+            이미 계정이 있으신가요?
+            <button
+              type="button"
+              onClick={() => navigate(PATHS.LOGIN)}
+              className="-my-[10px] py-[10px] font-semibold text-ink underline underline-offset-4 active:opacity-60"
+            >
+              로그인
+            </button>
+          </p>
         </>
       }
     >
