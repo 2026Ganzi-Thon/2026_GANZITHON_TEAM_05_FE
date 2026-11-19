@@ -75,7 +75,6 @@ export interface MockState {
   records: OutingRecord[]
   resting: boolean
   restDates: string[]
-  lastConditions?: Conditions
 }
 export interface Place {
   id: string

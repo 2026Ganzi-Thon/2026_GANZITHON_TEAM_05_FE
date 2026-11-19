@@ -123,12 +123,8 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
   const onNavigateExternal = (destination: 'collection' | 'reflection') =>
     navigate(destination === 'collection' ? PATHS.COLLECTION : PATHS.REFLECTION)
   const mission = missionById(missionId)
-  // 에너지·거리·시간·예산은 직전 외출 값을, 기분·망설이는 이유는 항상 가입 설문 값을 기본값으로 쓴다.
-  const reusableDefaults: Conditions = {
-    ...(state.lastConditions ?? effectiveDefaults),
-    mood: effectiveDefaults.mood,
-    barriers: effectiveDefaults.barriers,
-  }
+  // 건너뛴 항목은 매번 가입 설문에서 고른 값을 기본값으로 쓴다.
+  const reusableDefaults = effectiveDefaults
   const energy = state.conditions.energy ?? reusableDefaults.energy!
   const places =
     mission.placeType === 'store' ? [store] : mission.placeType === 'cafe' ? cafes : parks
@@ -159,11 +155,7 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
       ...reusableDefaults,
       ...Object.fromEntries(Object.entries(state.conditions).filter(([, value]) => value !== null)),
     } as Conditions
-    setState((prev) => ({
-      ...prev,
-      conditions,
-      lastConditions: { ...conditions, mood: null, barriers: [] },
-    }))
+    setState((prev) => ({ ...prev, conditions }))
     // 로딩 진입 한 번에 이번 외출의 조건을 확정한다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route])
@@ -192,7 +184,7 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
     setState((prev) => ({
       ...prev,
       resting: false,
-      conditions: { ...(prev.lastConditions ?? emptyConditions), mood: null, barriers: [] },
+      conditions: structuredClone(emptyConditions),
     }))
     setRecordId(null)
     setReview({ ...emptyReview })
@@ -637,7 +629,7 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
               ]}
             />
           </Card>
-          <p className="lt-hint lt-trim">기분과 망설이는 이유는 가입할 때 고른 값을 사용해요.</p>
+          <p className="lt-hint lt-trim">기본값은 가입할 때 고른 값이에요.</p>
         </div>
       </Page>
     )

@@ -65,7 +65,7 @@ export default function SurveyDefaultsPage() {
         <InfoTable rows={toConditionRows(conditions)} />
         {error && <FieldMessage>{error}</FieldMessage>}
         <p className="p-[5px] text-caption font-medium text-ink/25">
-          첫 기본값은 유지돼요. 다음 외출부터는 직전에 입력한 에너지와 조건을 사용해요.
+          외출할 때 건너뛴 항목은 언제나 이 기본값을 사용해요.
         </p>
       </div>
     </Screen>

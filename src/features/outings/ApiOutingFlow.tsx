@@ -237,7 +237,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
     const state = useOutingStore.getState().state
     useOutingStore.getState().setMockState({
       ...state,
-      conditions: { ...(state.lastConditions ?? emptyConditions), mood: null, barriers: [] },
+      conditions: structuredClone(emptyConditions),
     })
     api.reset({ preserveLocationConsent: true })
     go('conditions-1')
@@ -313,11 +313,6 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
           retry: false,
         })
         if (disposed) return
-        const form = useOutingStore.getState().state.conditions
-        useOutingStore.getState().setMockState((previous) => ({
-          ...previous,
-          lastConditions: { ...form, mood: null, barriers: [] },
-        }))
         useApiMissionStore.setState({
           recommendations: response.recommendations,
           excludedRecommendationIds: [
