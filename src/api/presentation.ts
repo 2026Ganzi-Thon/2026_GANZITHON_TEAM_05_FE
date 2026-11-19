@@ -177,8 +177,8 @@ export function toRecord(value: MissionDetail): OutingRecord {
     good: value.review?.goodPoint ?? '',
   }
 }
+/** 에너지 단계별 장소 검색 반경(m). 0단계는 장소 검색 없음, 1단계 도보 5분·2단계 도보 15분 정도. */
+const ENERGY_SEARCH_RADIUS = [0, 200, 800, 2000, 5000]
 export function searchRadius(conditions: ApiConditions): number {
-  const energyRadius = [0, 50, 100, 500][conditions.energyLevel]
-  if (energyRadius !== undefined) return energyRadius
-  return conditions.distanceLimit === 'any' ? 20000 : Number.parseInt(conditions.distanceLimit) * 67
+  return ENERGY_SEARCH_RADIUS[conditions.energyLevel] ?? 0
 }
