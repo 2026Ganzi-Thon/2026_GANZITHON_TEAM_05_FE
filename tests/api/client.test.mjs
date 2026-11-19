@@ -76,6 +76,53 @@ test('위치 권한 거부 시 이전 좌표로 성공 처리하지 않는다', 
 })
 const json = (value, status = 200) =>
   new Response(JSON.stringify(value), { status, headers: { 'Content-Type': 'application/json' } })
+
+test('기존 위치 허용은 안내를 생략하고 권한 철회·미결정은 다시 확인한다', async () => {
+  const { canSkipLocationConsent } = await server.ssrLoadModule('/src/lib/kakaoMaps.ts')
+  const original = Object.getOwnPropertyDescriptor(navigator, 'permissions')
+  let permission = 'granted'
+  Object.defineProperty(navigator, 'permissions', {
+    configurable: true,
+    value: {
+      async query(options) {
+        assert.equal(options.name, 'geolocation')
+        return { state: permission }
+      },
+    },
+  })
+  try {
+    assert.equal(await canSkipLocationConsent(false), true)
+    for (permission of ['prompt', 'denied']) {
+      assert.equal(await canSkipLocationConsent(true), false)
+    }
+    Object.defineProperty(navigator, 'permissions', { configurable: true, value: undefined })
+    assert.equal(await canSkipLocationConsent(true), true)
+    assert.equal(await canSkipLocationConsent(false), false)
+    Object.defineProperty(navigator, 'permissions', {
+      configurable: true,
+      value: {
+        query() {
+          throw new Error('unsupported')
+        },
+      },
+    })
+    assert.equal(await canSkipLocationConsent(true), true)
+    assert.equal(await canSkipLocationConsent(false), false)
+  } finally {
+    if (original) Object.defineProperty(navigator, 'permissions', original)
+    else delete navigator.permissions
+  }
+})
+
+test('새 미션은 세션 동의를 유지하고 계정 초기화는 동의를 지운다', async () => {
+  const { useApiMissionStore: store } = await server.ssrLoadModule('/src/stores/apiMissionStore.ts')
+  store.setState({ locationConsent: true, selectedRecommendation: recommendation(102, true) })
+  store.getState().reset({ preserveLocationConsent: true })
+  assert.equal(store.getState().locationConsent, true)
+  assert.equal(store.getState().selectedRecommendation, null)
+  store.getState().reset()
+  assert.equal(store.getState().locationConsent, false)
+})
 test('26개 API의 메서드·경로·인증·요청 필드가 명세와 일치한다', async () => {
   session.setAccessToken('synthetic-token')
   const detail = mission(),

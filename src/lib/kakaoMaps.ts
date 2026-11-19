@@ -67,6 +67,16 @@ export function loadKakaoMaps(): Promise<KakaoMaps> {
   })
   return pending
 }
+/** 권한 상태 조회만 수행한다. 위치 조회나 브라우저 권한 요청은 하지 않는다. */
+export async function canSkipLocationConsent(sessionConsent: boolean): Promise<boolean> {
+  try {
+    if (!navigator.permissions?.query) return sessionConsent
+    const permission = await navigator.permissions.query({ name: 'geolocation' })
+    return permission.state === 'granted'
+  } catch {
+    return sessionConsent
+  }
+}
 export function requestCurrentPosition(): Promise<Coordinates> {
   if (!navigator.geolocation)
     return Promise.reject(
