@@ -1,4 +1,5 @@
 import { ApiError } from './client'
+import { apiTimestamp } from './dates'
 import type {
   ApiStep,
   MissionDetail,
@@ -59,7 +60,14 @@ export function validateMission(value: MissionDetail) {
     invalid()
   validateSteps(value.steps)
   if (value.steps.some((step) => typeof step.completed !== 'boolean')) invalid()
-  return value
+  return {
+    ...value,
+    startedAt: apiTimestamp(value.startedAt),
+    completedAt: value.completedAt ? apiTimestamp(value.completedAt) : null,
+    resumableUntil: value.resumableUntil
+      ? apiTimestamp(value.resumableUntil)
+      : value.resumableUntil,
+  }
 }
 export function checkedResponse<T>(value: T, valid: boolean): T {
   if (!valid)

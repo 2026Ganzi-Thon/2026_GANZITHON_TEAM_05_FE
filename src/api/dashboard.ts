@@ -12,6 +12,15 @@ export function calendarStatuses(value?: CalendarResponse): Record<string, DaySt
     ]),
   )
 }
+export function calendarDayCounts(value: CalendarResponse) {
+  const counts = { completed: 0, partial: 0, notCompleted: 0 }
+  for (const status of new Map(value.days.map((day) => [day.date, day.status])).values()) {
+    if (status === 'completed') counts.completed++
+    else if (status === 'partial') counts.partial++
+    else if (status === 'rest') counts.notCompleted++
+  }
+  return counts
+}
 export function progressStatistics(value?: ReflectionProgress): MissionStatistics {
   const counts = [0, 0, 0, 0, 0]
   for (const item of value?.completedByEnergy ?? [])

@@ -28,7 +28,7 @@ import Frame from './ReflectionFrame'
 
 const rows = (record: ArchiveItem): [string, string][] => [
   ['시작일', shortDate(record.startedAt)],
-  ['종료일', shortDate(record.endedAt)],
+  ['종료일', record.endedAt ? shortDate(record.endedAt) : '기록 없음'],
   ['완료한 단계', `${record.completedCount}개`],
   ['남은 단계', `${record.remainingCount}개`],
 ]

@@ -114,7 +114,7 @@ export interface ArchiveItem {
   title: string
   energyLevel: ApiEnergy
   startedAt: string
-  endedAt: string
+  endedAt: string | null
   completedCount: number
   remainingCount: number
   status: MissionStatus
@@ -146,6 +146,6 @@ export interface CollectionResponse {
   pendingClaimCount: number
 }
 export interface ClaimResponse {
-  claimedFlowers: ApiFlower[]
+  claimedFlowers: Pick<ApiFlower, 'flowerNumber' | 'name' | 'acquiredAt'>[]
   pendingClaimCount: number
 }

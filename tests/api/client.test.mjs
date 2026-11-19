@@ -11,7 +11,7 @@ import {
   collection,
 } from './fixtures.mjs'
 
-let server, endpoints, session, client, presentation
+let server, endpoints, session, client, presentation, dashboard, dates
 const nativeFetch = globalThis.fetch
 before(async () => {
   process.env.VITE_API_BASE_URL = 'http://contract.local/api/v1/'
@@ -20,6 +20,8 @@ before(async () => {
   session = await server.ssrLoadModule('/src/api/session.ts')
   client = await server.ssrLoadModule('/src/api/client.ts')
   presentation = await server.ssrLoadModule('/src/api/presentation.ts')
+  dashboard = await server.ssrLoadModule('/src/api/dashboard.ts')
+  dates = await server.ssrLoadModule('/src/api/dates.ts')
 })
 after(async () => {
   globalThis.fetch = nativeFetch
@@ -413,4 +415,65 @@ test('상황 선택값은 서버 enum으로 보내고, 장소 상세 누락 시 
       place: { placeId: '12345', distanceMeters: null },
     }),
   )
+})
+test('PR #2의 null 종료일과 시간대 없는 기록을 날짜 왜곡 없이 처리한다', async () => {
+  session.setAccessToken('synthetic-token')
+  globalThis.fetch = async () =>
+    json({
+      items: [
+        {
+          missionId: uuid(1),
+          title: '저장한 미션',
+          energyLevel: 2,
+          startedAt: '2026-11-18T23:30:00',
+          endedAt: null,
+          completedCount: 2,
+          remainingCount: 3,
+          status: 'paused',
+        },
+      ],
+      page: 1,
+      pageSize: 10,
+      total: 1,
+      hasNext: false,
+    })
+  const archive = await endpoints.archiveApi.list()
+  assert.equal(archive.items[0].endedAt, null)
+  assert.equal(archive.items[0].startedAt, '2026-11-18T23:30:00Z')
+  globalThis.fetch = async () =>
+    json({ ...mission(), startedAt: '2026-11-18T23:30:00', completedAt: null })
+  assert.equal((await endpoints.archiveApi.detail(uuid(1))).startedAt, '2026-11-18T23:30:00Z')
+  assert.equal(dates.apiTimestamp('2026-11-19'), '2026-11-19')
+  assert.equal(dates.apiTimestamp('2026-11-19T08:30:00+09:00'), '2026-11-19T08:30:00+09:00')
+})
+test('성찰의 일수는 미션 건수와 구분해 서버 달력의 날짜별 상태로 표시한다', () => {
+  assert.deepEqual(
+    dashboard.calendarDayCounts({
+      month: '2026-11',
+      days: [
+        { date: '2026-11-17', status: 'completed' },
+        { date: '2026-11-18', status: 'partial' },
+        { date: '2026-11-19', status: 'rest' },
+        { date: '2026-11-20', status: 'undecided' },
+        { date: '2026-11-17', status: 'completed' },
+      ],
+    }),
+    { completed: 1, partial: 1, notCompleted: 1 },
+  )
+})
+test('PR #2 꽃 확인의 부분 응답을 받고 새 꽃 지급 요청은 추가하지 않는다', async () => {
+  session.setAccessToken('synthetic-token')
+  const requests = []
+  globalThis.fetch = async (url, options) => {
+    requests.push({ url, method: options.method })
+    return json({
+      claimedFlowers: [{ flowerNumber: 1, name: '칼라', acquiredAt: '2026-11-19T00:00:00' }],
+      pendingClaimCount: 0,
+    })
+  }
+  const result = await endpoints.collectionApi.claim()
+  assert.equal(result.claimedFlowers[0].flowerNumber, 1)
+  assert.deepEqual(requests, [
+    { url: 'http://contract.local/api/v1/collection/flowers/claim', method: 'POST' },
+  ])
 })

@@ -12,7 +12,7 @@ import helpIcon from '@/assets/reflection/help.svg'
 import '@/features/outings/letit.css'
 import { isApiEnabled } from '@/api/config'
 import { useReflectionQueries } from '@/api/queries'
-import { calendarStatuses } from '@/api/dashboard'
+import { calendarDayCounts, calendarStatuses } from '@/api/dashboard'
 import ApiFeedback from '@/components/ui/ApiFeedback'
 import type { DayStatus } from '@/features/outings/history'
 
@@ -29,7 +29,7 @@ function ApiReflectionPage() {
       month={month}
       setMonth={setMonth}
       statuses={calendarStatuses(calendar.data)}
-      counts={summary.data?.counts}
+      counts={calendar.data ? calendarDayCounts(calendar.data) : undefined}
       feedback={
         loading || error ? (
           <ApiFeedback

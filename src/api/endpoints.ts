@@ -9,6 +9,7 @@ import {
 import { getAccessToken } from './session'
 import { ApiError } from './client'
 import { toApiSituation } from './presentation'
+import { apiTimestamp } from './dates'
 import type {
   ApiConditions,
   ApiDefaults,
@@ -128,7 +129,7 @@ export const missionsApi = {
           Number.isInteger(item.completedCount) &&
           Number.isInteger(item.remainingCount)
         )
-          return item as ResumableMission
+          return { ...item, startedAt: apiTimestamp(item.startedAt) } as ResumableMission
         const detail = await apiRequest<MissionDetail>(`/missions/${id(item.missionId)}`, {
           signal,
         }).then(validateMission)
@@ -221,14 +222,22 @@ export const reflectionApi = {
 }
 export const archiveApi = {
   list: (page = 1, pageSize = 10, signal?: AbortSignal) =>
-    apiRequest<ArchiveResponse>('/archive', { query: { page, pageSize }, signal }).then((value) =>
+    apiRequest<ArchiveResponse>('/archive', { query: { page, pageSize }, signal }).then((value) => {
       checkedResponse(
         value,
         Array.isArray(value.items) &&
           Number.isInteger(value.page) &&
           typeof value.hasNext === 'boolean',
-      ),
-    ),
+      )
+      return {
+        ...value,
+        items: value.items.map((item) => ({
+          ...item,
+          startedAt: apiTimestamp(item.startedAt),
+          endedAt: item.endedAt ? apiTimestamp(item.endedAt) : null,
+        })),
+      }
+    }),
   detail: (missionId: string, signal?: AbortSignal) =>
     apiRequest<MissionDetail>(`/archive/${id(missionId)}`, { signal }).then(validateMission),
   hide: (missionId: string) =>
