@@ -347,7 +347,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
             )
             return { ...response, position }
           },
-          staleTime: Infinity,
+          staleTime: 5 * 60 * 1000,
           retry: false,
         })
         if (disposed) return
@@ -823,6 +823,18 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
             </div>
             <div className="lt-body">
               {message}
+              {!!error && (
+                <Button
+                  variant="secondary"
+                  disabled={disabled}
+                  onClick={() => {
+                    useApiMissionStore.setState({ searchAttempt: api.searchAttempt + 1 })
+                    go('location-loading')
+                  }}
+                >
+                  장소 다시 찾기
+                </Button>
+              )}
               <OutingMap
                 places={places}
                 selectedPlaceId={selected?.placeId ?? ''}
