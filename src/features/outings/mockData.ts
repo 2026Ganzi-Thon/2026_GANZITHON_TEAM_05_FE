@@ -56,7 +56,7 @@ export const defaultConditions: Conditions = {
   barriers: [],
   distance: '10분 이내',
   time: '30분',
-  budget: '5,000원 이하',
+  budget: '10,000원 이하',
 }
 export const emptyReview: ReviewDraft = {
   mood: null,

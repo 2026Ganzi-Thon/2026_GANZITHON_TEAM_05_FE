@@ -14,7 +14,7 @@ export type Distance = 'WITHIN_5' | 'WITHIN_10' | 'WITHIN_20' | 'ANY'
 export type Duration = 'MIN_10' | 'MIN_30' | 'HOUR_1' | 'ANY'
 
 /** 예산 */
-export type Budget = 'FREE' | 'UNDER_5000' | 'UNDER_10000' | 'ANY'
+export type Budget = 'FREE' | 'UNDER_10000' | 'UNDER_50000' | 'ANY'
 
 /** 외출 조건 6개. 온보딩 기본값 설문과 외출 조건 입력이 같은 형태를 쓴다. */
 export interface OutingConditions {

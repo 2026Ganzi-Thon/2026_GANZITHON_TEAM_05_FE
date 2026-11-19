@@ -48,8 +48,8 @@ const timeMap: Record<Duration, ApiConditions['timeLimit']> = {
 }
 const budgetMap: Record<Budget, ApiConditions['budgetLimit']> = {
   FREE: 0,
-  UNDER_5000: 5000,
   UNDER_10000: 10000,
+  UNDER_50000: 50000,
   ANY: null,
 }
 function reverse<K extends string, V>(map: Record<K, V>, value: V, fallback: K): K {
@@ -72,7 +72,8 @@ export function fromApiDefaults(value: ApiConditions): OutingConditions {
     barriers: value.barriers.map((barrier) => reverse(barrierMap, barrier, 'NO_REASON')),
     distance: reverse(distanceMap, value.distanceLimit, 'WITHIN_10'),
     duration: reverse(timeMap, value.timeLimit, 'MIN_30'),
-    budget: reverse(budgetMap, value.budgetLimit, 'UNDER_5000'),
+    // 예전 선택지(5,000원 이하)로 저장된 값은 새 기본값인 10,000원 이하로 읽는다.
+    budget: reverse(budgetMap, value.budgetLimit, 'UNDER_10000'),
   }
 }
 export function toApiConditions(
@@ -80,7 +81,7 @@ export function toApiConditions(
   defaults: OutingConditions = DEFAULT_CONDITIONS,
 ): ApiConditions {
   return toApiDefaults({
-    mood: MOOD_OPTIONS.find((option) => option.label === value.mood)?.value ?? null,
+    mood: MOOD_OPTIONS.find((option) => option.label === value.mood)?.value ?? defaults.mood,
     energy: value.energy ?? defaults.energy,
     barriers: value.barriers.flatMap((label) => {
       const option = BARRIER_OPTIONS.find((option) => option.label === label)
@@ -176,8 +177,8 @@ export function toRecord(value: MissionDetail): OutingRecord {
     good: value.review?.goodPoint ?? '',
   }
 }
+/** 에너지 단계별 장소 검색 반경(m). 0단계는 장소 검색 없음, 1단계 도보 5분·2단계 도보 15분 정도. */
+const ENERGY_SEARCH_RADIUS = [0, 200, 800, 2000, 5000]
 export function searchRadius(conditions: ApiConditions): number {
-  const energyRadius = [0, 50, 100, 500][conditions.energyLevel]
-  if (energyRadius !== undefined) return energyRadius
-  return conditions.distanceLimit === 'any' ? 20000 : Number.parseInt(conditions.distanceLimit) * 67
+  return ENERGY_SEARCH_RADIUS[conditions.energyLevel] ?? 0
 }

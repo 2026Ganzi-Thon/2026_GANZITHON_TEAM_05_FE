@@ -417,12 +417,12 @@ test('타임아웃과 취소를 구분한다', async () => {
 test('조건 변환·5단계 순서·검색 반경·추정 도보 시간을 계약 단위로 변환한다', () => {
   assert.deepEqual(presentation.toApiDefaults(presentation.fromApiDefaults(conditions)), conditions)
   assert.equal(presentation.searchRadius({ ...conditions, energyLevel: 0 }), 0)
-  assert.equal(presentation.searchRadius({ ...conditions, energyLevel: 1 }), 50)
-  assert.equal(presentation.searchRadius(conditions), 100)
-  assert.equal(presentation.searchRadius({ ...conditions, energyLevel: 3 }), 500)
+  assert.equal(presentation.searchRadius({ ...conditions, energyLevel: 1 }), 200)
+  assert.equal(presentation.searchRadius(conditions), 800)
+  assert.equal(presentation.searchRadius({ ...conditions, energyLevel: 3 }), 2000)
   assert.equal(
     presentation.searchRadius({ ...conditions, energyLevel: 4, distanceLimit: 'any' }),
-    20000,
+    5000,
   )
   assert.equal(presentation.toPlace(place).walk, '약 2분 (추정)')
   assert.equal(presentation.sortedSteps([...recommendation().steps].reverse())[0].order, 1)

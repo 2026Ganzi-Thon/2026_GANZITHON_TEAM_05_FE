@@ -56,8 +56,8 @@ export const DURATION_OPTIONS: (Option<Duration> & { summary: string })[] = [
 /** 예산 — 04 */
 export const BUDGET_OPTIONS: (Option<Budget> & { summary: string })[] = [
   { value: 'FREE', label: '0원', summary: '0원' },
-  { value: 'UNDER_5000', label: '5,000원 이하', summary: '5,000원 이하' },
   { value: 'UNDER_10000', label: '10,000원 이하', summary: '10,000원 이하' },
+  { value: 'UNDER_50000', label: '50,000원 이하', summary: '50,000원 이하' },
   { value: 'ANY', label: '상관없음', summary: '상관없음' },
 ]
 
@@ -68,7 +68,7 @@ export const DEFAULT_CONDITIONS: OutingConditions = {
   barriers: [],
   distance: 'WITHIN_10',
   duration: 'MIN_30',
-  budget: 'UNDER_5000',
+  budget: 'UNDER_10000',
 }
 
 const NOT_SELECTED = '선택 안 함'

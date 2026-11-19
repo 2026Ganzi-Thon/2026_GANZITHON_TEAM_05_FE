@@ -7,7 +7,7 @@ export interface ApiConditions {
   barriers: ApiBarrier[]
   distanceLimit: '5min' | '10min' | '20min' | 'any'
   timeLimit: '10min' | '30min' | '60min' | 'any'
-  budgetLimit: 0 | 5000 | 10000 | null
+  budgetLimit: 0 | 10000 | 50000 | null
 }
 export interface ApiDefaults extends ApiConditions {
   onboardingCompleted: boolean

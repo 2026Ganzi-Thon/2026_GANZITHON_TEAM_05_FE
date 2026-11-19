@@ -5,7 +5,7 @@ export const conditions = {
   barriers: ['crowded'],
   distanceLimit: '10min',
   timeLimit: '30min',
-  budgetLimit: 5000,
+  budgetLimit: 10000,
 }
 export const steps = Array.from({ length: 5 }, (_, index) => ({
   stepId: uuid(201 + index),

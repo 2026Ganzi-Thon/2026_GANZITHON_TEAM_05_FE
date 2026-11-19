@@ -347,6 +347,8 @@
   cursor: pointer;
   font-size: 20px;
   font-weight: 600;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .lt-mission-check input {
   inset: 0;
@@ -384,6 +386,9 @@
   padding: 5px;
   min-height: 35px;
   flex-shrink: 0;
+  /* 단계 문장이 길면 글자 중간(스트레칭하/기)이 아니라 단어 단위로 줄바꿈한다 */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .lt-step-number {
   display: grid;
@@ -427,6 +432,17 @@
 .lt-metrics dd {
   font-size: 20px;
   font-weight: 600;
+  /* 두 줄이 되면 단어 단위로 나누고 줄 길이를 맞춰 가운데 정렬한다 (예: 지정 장소 / 없음) */
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+/* 360px보다 좁은 폰에서도 10,000원처럼 짧은 값이 쪼개지지 않게 글자를 조금 줄인다 */
+@media (max-width: 359px) {
+  .lt-metrics dd {
+    font-size: 17px;
+  }
 }
 .lt-place-info {
   padding: 20px;

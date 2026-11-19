@@ -123,7 +123,8 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
   const onNavigateExternal = (destination: 'collection' | 'reflection') =>
     navigate(destination === 'collection' ? PATHS.COLLECTION : PATHS.REFLECTION)
   const mission = missionById(missionId)
-  const reusableDefaults = state.lastConditions ?? effectiveDefaults
+  // 건너뛴 항목은 매번 가입 설문에서 고른 값을 기본값으로 쓴다.
+  const reusableDefaults = effectiveDefaults
   const energy = state.conditions.energy ?? reusableDefaults.energy!
   const places =
     mission.placeType === 'store' ? [store] : mission.placeType === 'cafe' ? cafes : parks
@@ -154,11 +155,7 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
       ...reusableDefaults,
       ...Object.fromEntries(Object.entries(state.conditions).filter(([, value]) => value !== null)),
     } as Conditions
-    setState((prev) => ({
-      ...prev,
-      conditions,
-      lastConditions: { ...conditions, mood: null, barriers: [] },
-    }))
+    setState((prev) => ({ ...prev, conditions }))
     // 로딩 진입 한 번에 이번 외출의 조건을 확정한다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route])
@@ -187,7 +184,7 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
     setState((prev) => ({
       ...prev,
       resting: false,
-      conditions: { ...(prev.lastConditions ?? emptyConditions), mood: null, barriers: [] },
+      conditions: structuredClone(emptyConditions),
     }))
     setRecordId(null)
     setReview({ ...emptyReview })
@@ -225,11 +222,11 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
     if (skip)
       updateConditions(
         step === 1
-          ? { mood: null }
+          ? { mood: reusableDefaults.mood }
           : step === 2
             ? { energy: reusableDefaults.energy }
             : step === 3
-              ? { barriers: [] }
+              ? { barriers: reusableDefaults.barriers }
               : {
                   distance: reusableDefaults.distance,
                   time: reusableDefaults.time,
@@ -519,7 +516,7 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
         onSkip={() => {
           setState((prev) => ({
             ...prev,
-            conditions: { ...reusableDefaults, mood: null, barriers: [] },
+            conditions: { ...reusableDefaults },
           }))
           go('defaults')
         }}
@@ -632,7 +629,7 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
               ]}
             />
           </Card>
-          <p className="lt-hint lt-trim">기분과 망설이는 이유는 매번 새로 선택할 수 있어요.</p>
+          <p className="lt-hint lt-trim">기본값은 가입할 때 고른 값이에요.</p>
         </div>
       </Page>
     )
@@ -932,14 +929,14 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
       >
         <Heading
           progress={{ current: 1, total: 2 }}
-          title="외출 후 기분은 어떤가요?"
+          title="미션 후 기분은 어떤가요?"
           subtitle="고르지 않아도 성공 기록은 그대로 남아요"
         />
         <Choices
           options={reviewMoodOptions}
           selected={review.mood === null ? [] : [Number(review.mood)]}
           onChange={(i) => setReview((prev) => ({ ...prev, mood: String(i) }))}
-          label="외출 후 기분"
+          label="미션 후 기분"
         />
       </Page>
     )

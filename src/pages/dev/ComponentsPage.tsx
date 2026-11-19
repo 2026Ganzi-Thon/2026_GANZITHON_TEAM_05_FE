@@ -71,7 +71,7 @@ export default function ComponentsPage() {
       <Section title="Button">
         <Button>Letit 시작하기</Button>
         <Button variant="secondary">건너뛰기</Button>
-        <Button variant="text">이미 사용해봤어요</Button>
+        <Button variant="text">글자 버튼</Button>
         <Button disabled>비활성</Button>
       </Section>
 
