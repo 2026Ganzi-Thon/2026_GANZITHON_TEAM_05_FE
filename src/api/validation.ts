@@ -1,5 +1,11 @@
 import { ApiError } from './client'
-import type { ApiStep, MissionDetail, Recommendation, MissionProgress } from './contracts'
+import type {
+  ApiStep,
+  MissionDetail,
+  RecommendationsResponse,
+  MissionProgress,
+  StepProgress,
+} from './contracts'
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 function invalid(): never {
   throw new ApiError('미션 정보를 확인하지 못했어요. 다시 불러와 주세요.', 0, 'INVALID_MISSION')
@@ -23,9 +29,7 @@ export function validateSteps(steps: ApiStep[]) {
     )
       invalid()
 }
-export function validateRecommendations<T extends { recommendations: Recommendation[] }>(
-  response: T,
-): T {
+export function validateRecommendations<T extends RecommendationsResponse>(response: T) {
   if (!Array.isArray(response.recommendations) || response.recommendations.length !== 2) invalid()
   for (const value of response.recommendations) {
     if (
@@ -42,7 +46,7 @@ export function validateRecommendations<T extends { recommendations: Recommendat
       invalid()
     validateSteps(value.steps)
   }
-  return response
+  return { ...response, fallback: response.fallbackUsed ?? response.fallback ?? false }
 }
 export function validateMission(value: MissionDetail) {
   if (
@@ -65,13 +69,22 @@ export function checkedResponse<T>(value: T, valid: boolean): T {
 export function validateMissionId<T extends { missionId: string }>(value: T): T {
   return checkedResponse(value, uuid.test(value.missionId))
 }
-export function validateProgress(value: MissionProgress): MissionProgress {
-  return checkedResponse(
+export function validateProgress(
+  value: StepProgress & Partial<Pick<MissionProgress, 'completedCount' | 'remainingCount'>>,
+): MissionProgress {
+  checkedResponse(
     value,
     uuid.test(value.missionId) &&
       Array.isArray(value.completedStepIds) &&
       value.completedStepIds.every((id) => uuid.test(id)) &&
-      value.completedCount === value.completedStepIds.length &&
-      value.completedCount + value.remainingCount === 5,
+      new Set(value.completedStepIds).size === value.completedStepIds.length &&
+      value.completedStepIds.length <= 5,
   )
+  const completedCount = value.completedStepIds.length
+  checkedResponse(
+    value,
+    (value.completedCount === undefined || value.completedCount === completedCount) &&
+      (value.remainingCount === undefined || value.remainingCount === 5 - completedCount),
+  )
+  return { ...value, completedCount, remainingCount: 5 - completedCount }
 }

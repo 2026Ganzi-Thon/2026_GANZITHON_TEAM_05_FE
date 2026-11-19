@@ -136,7 +136,7 @@ test('26개 API의 메서드·경로·인증·요청 필드가 명세와 일치�
     [
       'POST',
       `/missions/${mid}/alternatives`,
-      { situation: '눈/비가 와요' },
+      { situation: 'weather' },
       recs,
       () => endpoints.missionsApi.alternatives(mid, '눈/비가 와요'),
     ],
@@ -331,4 +331,86 @@ test('조건 변환·5단계 순서·검색 반경·추정 도보 시간을 계�
   )
   assert.equal(presentation.toPlace(place).walk, '약 2분 (추정)')
   assert.equal(presentation.sortedSteps([...recommendation().steps].reverse())[0].order, 1)
+})
+test('실제 서버의 간소한 단계 응답을 UUID 목록 기준으로 표시한다', async () => {
+  session.setAccessToken('synthetic-token')
+  globalThis.fetch = async () =>
+    json({ missionId: uuid(1), status: 'in_progress', completedStepIds: [uuid(201), uuid(202)] })
+  const value = await endpoints.missionsApi.updateSteps(uuid(1), [uuid(201), uuid(202)])
+  assert.equal(value.completedCount, 2)
+  assert.equal(value.remainingCount, 3)
+})
+test('이어하기 목록에 빠진 시작일과 완료 개수는 미션 상세에서 조회한다', async () => {
+  session.setAccessToken('synthetic-token')
+  const detail = mission()
+  detail.steps[0].completed = true
+  const calls = []
+  globalThis.fetch = async (url) => {
+    calls.push(new URL(url).pathname)
+    return url.endsWith('/resumable')
+      ? json({
+          items: [
+            {
+              missionId: detail.missionId,
+              title: detail.title,
+              energyLevel: 2,
+              completedStepIds: [detail.steps[0].stepId],
+            },
+          ],
+        })
+      : json(detail)
+  }
+  const value = await endpoints.missionsApi.resumable()
+  assert.deepEqual(calls, ['/api/v1/missions/resumable', `/api/v1/missions/${detail.missionId}`])
+  assert.equal(value.items[0].startedAt, detail.startedAt)
+  assert.equal(value.items[0].completedCount, 1)
+  assert.equal(value.items[0].remainingCount, 4)
+})
+test('실제 서버의 fallbackUsed와 제외 목록 최대 50개를 반영한다', async () => {
+  session.setAccessToken('synthetic-token')
+  let sent
+  globalThis.fetch = async (_url, options) => {
+    sent = JSON.parse(options.body)
+    return json({ fallbackUsed: true, recommendations: [recommendation(), recommendation(102)] })
+  }
+  const exclusions = Array.from({ length: 60 }, (_, index) => uuid(index + 1000))
+  const value = await endpoints.missionsApi.recommendations(conditions, exclusions)
+  assert.equal(value.fallback, true)
+  assert.deepEqual(sent.excludeRecommendationIds, exclusions.slice(-50))
+})
+test('상황 선택값은 서버 enum으로 보내고, 장소 상세 누락 시 임의 좌표를 만들지 않는다', () => {
+  const labels = [
+    '눈/비가 와요',
+    '장소가 문을 닫았어요',
+    '사람이 많아요',
+    '외출할 에너지가 부족해요',
+    '비용이 부담스러워요',
+    '기타',
+  ]
+  assert.deepEqual(labels.map(presentation.toApiSituation), [
+    'weather',
+    'closed',
+    'crowded',
+    'low_energy',
+    'cost',
+    'other',
+  ])
+  const value = presentation.toPlace({
+    placeId: '12345',
+    name: null,
+    address: null,
+    latitude: null,
+    longitude: null,
+    distanceMeters: null,
+    walkingMinutes: null,
+  })
+  assert.equal(value.coordinates, undefined)
+  assert.equal(value.distance, '거리 정보 없음')
+  assert.equal(value.name, '장소 정보 없음')
+  assert.doesNotThrow(() =>
+    presentation.toMission({
+      ...mission(1, recommendation(102, true)),
+      place: { placeId: '12345', distanceMeters: null },
+    }),
+  )
 })

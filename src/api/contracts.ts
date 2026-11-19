@@ -44,6 +44,10 @@ export interface ApiPlace {
   distanceMeters: number
   walkingMinutes: number | null
 }
+/** 서버가 장소 스냅샷을 보완하기 전에는 ID 외 필드가 null일 수 있다. */
+export type MissionPlace = { placeId: string } & {
+  [K in Exclude<keyof ApiPlace, 'placeId'>]?: ApiPlace[K] | null
+}
 export interface ApiReview {
   moodAfter: string | null
   oneLine: string | null
@@ -56,16 +60,28 @@ export interface MissionDetail extends Omit<Recommendation, 'recommendationId'> 
   startedAt: string
   completedAt: string | null
   resumableUntil?: string | null
-  place: ApiPlace | null
+  place: MissionPlace | null
   review: ApiReview | null
 }
-export interface MissionProgress {
+export interface StepProgress {
   missionId: string
   status: MissionStatus
   completedStepIds: string[]
+}
+export interface MissionProgress extends StepProgress {
   completedCount: number
   remainingCount: number
   resumableUntil?: string | null
+}
+export type ResumableMissionResponse = Omit<
+  ResumableMission,
+  'startedAt' | 'completedCount' | 'remainingCount'
+> &
+  Partial<Pick<ResumableMission, 'startedAt' | 'completedCount' | 'remainingCount'>>
+export interface RecommendationsResponse {
+  recommendations: Recommendation[]
+  fallbackUsed?: boolean
+  fallback?: boolean
 }
 export interface ResumableMission {
   missionId: string

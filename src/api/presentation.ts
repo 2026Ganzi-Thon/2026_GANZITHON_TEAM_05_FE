@@ -14,6 +14,7 @@ import type {
   ApiMood,
   ApiPlace,
   ApiStep,
+  MissionPlace,
   MissionDetail,
   Recommendation,
 } from './contracts'
@@ -95,16 +96,39 @@ export function toApiConditions(
   })
 }
 export const sortedSteps = (steps: ApiStep[]) => [...steps].sort((a, b) => a.order - b.order)
-export function toPlace(value: ApiPlace): Place {
-  const minutes = value.walkingMinutes ?? Math.max(1, Math.ceil(value.distanceMeters / 67))
+export function toPlace(value: ApiPlace | MissionPlace): Place {
+  const distance =
+    typeof value.distanceMeters === 'number' && Number.isFinite(value.distanceMeters)
+      ? value.distanceMeters
+      : null
+  const minutes =
+    value.walkingMinutes ?? (distance === null ? null : Math.max(1, Math.ceil(distance / 67)))
+  const coordinates =
+    typeof value.latitude === 'number' &&
+    typeof value.longitude === 'number' &&
+    Number.isFinite(value.latitude) &&
+    Number.isFinite(value.longitude)
+      ? { lat: value.latitude, lng: value.longitude }
+      : undefined
   return {
     id: value.placeId,
-    name: value.name,
-    address: value.address,
-    coordinates: { lat: value.latitude, lng: value.longitude },
-    distance: `${value.distanceMeters.toLocaleString('ko-KR')}m`,
-    walk: `약 ${minutes}분 (추정)`,
+    name: value.name ?? '장소 정보 없음',
+    address: value.address ?? '주소 정보 없음',
+    coordinates,
+    distance: distance === null ? '거리 정보 없음' : `${distance.toLocaleString('ko-KR')}m`,
+    walk: minutes === null ? '이동 시간 정보 없음' : `약 ${minutes}분 (추정)`,
   }
+}
+export function toApiSituation(value: string) {
+  const values: Record<string, string> = {
+    '눈/비가 와요': 'weather',
+    '장소가 문을 닫았어요': 'closed',
+    '사람이 많아요': 'crowded',
+    '외출할 에너지가 부족해요': 'low_energy',
+    '비용이 부담스러워요': 'cost',
+    기타: 'other',
+  }
+  return values[value] ?? (Object.values(values).includes(value) ? value : 'other')
 }
 export function toMission(value: Recommendation | MissionDetail): Mission {
   return {

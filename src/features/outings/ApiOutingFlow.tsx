@@ -184,6 +184,21 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
   const pageProps = { nodeId: nodes[route] ?? '72:8925', onBack: () => back() }
 
   function applyDetail(detail: MissionDetail) {
+    const selectedPlace = useApiMissionStore
+      .getState()
+      .places.find((place) => place.placeId === detail.place?.placeId)
+    if (selectedPlace && detail.place)
+      detail = {
+        ...detail,
+        place: {
+          ...selectedPlace,
+          ...Object.fromEntries(
+            Object.entries(detail.place).filter(
+              ([, value]) => value !== null && value !== undefined,
+            ),
+          ),
+        },
+      }
     useApiMissionStore.setState({
       mission: detail,
       pendingMissionId: null,

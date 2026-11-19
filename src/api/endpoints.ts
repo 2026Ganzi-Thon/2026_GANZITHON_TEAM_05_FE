@@ -8,6 +8,7 @@ import {
 } from './validation'
 import { getAccessToken } from './session'
 import { ApiError } from './client'
+import { toApiSituation } from './presentation'
 import type {
   ApiConditions,
   ApiDefaults,
@@ -20,7 +21,9 @@ import type {
   CollectionResponse,
   MissionDetail,
   MissionProgress,
-  Recommendation,
+  RecommendationsResponse,
+  ResumableMissionResponse,
+  StepProgress,
   ReflectionProgress,
   ReflectionSummary,
   ResumableMission,
@@ -65,10 +68,12 @@ export const missionsApi = {
     excludeRecommendationIds: string[] = [],
     signal?: AbortSignal,
   ) =>
-    apiRequest<{ recommendations: Recommendation[]; fallback?: boolean }>(
-      '/missions/recommendations',
-      { method: 'POST', body: { conditions, excludeRecommendationIds }, signal, timeoutMs: 90000 },
-    ).then(validateRecommendations),
+    apiRequest<RecommendationsResponse>('/missions/recommendations', {
+      method: 'POST',
+      body: { conditions, excludeRecommendationIds: excludeRecommendationIds.slice(-50) },
+      signal,
+      timeoutMs: 90000,
+    }).then(validateRecommendations),
   create: (recommendationId: string, placeId: string | null) =>
     apiRequest<{ missionId: string }>('/missions', {
       method: 'POST',
@@ -81,7 +86,7 @@ export const missionsApi = {
     const token = getAccessToken()
     const request = (previous ? previous.catch(() => undefined) : Promise.resolve()).then(() => {
       if (getAccessToken() !== token) throw new ApiError('로그인이 필요해요.', 401, 'UNAUTHORIZED')
-      return apiRequest<MissionProgress>(`/missions/${id(missionId)}/steps`, {
+      return apiRequest<StepProgress>(`/missions/${id(missionId)}/steps`, {
         method: 'PATCH',
         body: { completedStepIds },
       }).then(validateProgress)
@@ -106,14 +111,40 @@ export const missionsApi = {
   },
   complete: async (missionId: string) => {
     await pendingSteps.get(missionId)
-    return apiRequest<MissionProgress>(`/missions/${id(missionId)}/complete`, { method: 'POST' })
+    return apiRequest<
+      Pick<MissionDetail, 'missionId' | 'status' | 'completedAt'> & { completedCount: number }
+    >(`/missions/${id(missionId)}/complete`, { method: 'POST' })
   },
-  resumable: (signal?: AbortSignal) =>
-    apiRequest<{ items: ResumableMission[] }>('/missions/resumable', { signal }).then((value) =>
-      checkedResponse(value, Array.isArray(value.items)),
-    ),
+  resumable: async (signal?: AbortSignal): Promise<{ items: ResumableMission[] }> => {
+    const response = await apiRequest<{ items: ResumableMissionResponse[] }>(
+      '/missions/resumable',
+      { signal },
+    )
+    checkedResponse(response, Array.isArray(response.items))
+    const items = await Promise.all(
+      response.items.map(async (item) => {
+        if (
+          item.startedAt &&
+          Number.isInteger(item.completedCount) &&
+          Number.isInteger(item.remainingCount)
+        )
+          return item as ResumableMission
+        const detail = await apiRequest<MissionDetail>(`/missions/${id(item.missionId)}`, {
+          signal,
+        }).then(validateMission)
+        const completedCount = detail.steps.filter((step) => step.completed).length
+        return {
+          ...item,
+          startedAt: detail.startedAt,
+          completedCount,
+          remainingCount: detail.steps.length - completedCount,
+        }
+      }),
+    )
+    return { items }
+  },
   resume: (missionId: string) =>
-    apiRequest<MissionProgress>(`/missions/${id(missionId)}/resume`, { method: 'POST' }),
+    apiRequest<StepProgress>(`/missions/${id(missionId)}/resume`, { method: 'POST' }),
   abandon: async (missionId: string) => {
     await pendingSteps.get(missionId)
     return apiRequest<{ missionId: string; status: string; removedFromResumable?: boolean }>(
@@ -122,10 +153,12 @@ export const missionsApi = {
     )
   },
   alternatives: (missionId: string, situation: string, signal?: AbortSignal) =>
-    apiRequest<{ recommendations: Recommendation[]; fallback?: boolean }>(
-      `/missions/${id(missionId)}/alternatives`,
-      { method: 'POST', body: { situation }, signal, timeoutMs: 90000 },
-    ).then(validateRecommendations),
+    apiRequest<RecommendationsResponse>(`/missions/${id(missionId)}/alternatives`, {
+      method: 'POST',
+      body: { situation: toApiSituation(situation) },
+      signal,
+      timeoutMs: 90000,
+    }).then(validateRecommendations),
   replace: async (missionId: string, recommendationId: string, placeId: string | null) => {
     await pendingSteps.get(missionId)
     return apiRequest<{ oldMissionId: string; newMissionId: string }>(
