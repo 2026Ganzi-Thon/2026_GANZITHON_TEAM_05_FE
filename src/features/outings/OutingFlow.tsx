@@ -6,7 +6,7 @@ import { useOutingStore, type OutingSession } from '@/stores/outingStore'
 import { useUserDefaultsStore } from '@/stores/userDefaultsStore'
 import { todayString } from '@/stores/collectionStore'
 import { reconcileCollectionDays, resumableMissions, shortDate } from './history'
-import { cn } from '@/utils/cn'
+import MissionSkeletons from '@/components/ui/MissionSkeletons'
 import { OUTING_SCREEN_PATHS } from './navigation'
 import { resolveOutingDefaults } from './defaults'
 import { createOutingRecord } from './records'
@@ -47,6 +47,8 @@ import {
 
 import type { Conditions, Energy, Mission, ModalKind, SavedMission, Screen } from './types'
 import './letit.css'
+import { isApiEnabled } from '@/api/config'
+import ApiOutingFlow from './ApiOutingFlow'
 
 const screenNodes: Record<Screen, string> = {
   home: '72:7657',
@@ -71,7 +73,14 @@ const screenNodes: Record<Screen, string> = {
 export interface OutingFlowProps {
   screen: Screen
 }
-export default function OutingFlow({ screen: route }: OutingFlowProps) {
+export default function OutingFlow(props: OutingFlowProps) {
+  return isApiEnabled && !props.screen.startsWith('conditions-') && props.screen !== 'defaults' ? (
+    <ApiOutingFlow {...props} />
+  ) : (
+    <MockOutingFlow {...props} />
+  )
+}
+function MockOutingFlow({ screen: route }: OutingFlowProps) {
   const navigate = useNavigate()
   const { state, session, setMockState: setState, updateSession } = useOutingStore()
   const userDefaults = useUserDefaultsStore((store) => store.defaults)
@@ -638,40 +647,7 @@ export default function OutingFlow({ screen: route }: OutingFlowProps) {
           }
           subtitle={route === 'loading' ? '에너지와 외출 조건을 확인하고 있어요' : undefined}
         />
-        <div
-          className={cn(
-            'lt-body lt-skeletons',
-            route === 'location-loading' && 'lt-location-skeletons',
-          )}
-          role="status"
-          aria-label="추천 정보를 불러오는 중"
-        >
-          {route === 'location-loading' ? (
-            <>
-              <Card>
-                <div className="lt-skeleton lt-skeleton--short" />
-                <div className="lt-skeleton lt-skeleton--medium" />
-              </Card>
-              <div className="lt-skeleton-map" />
-              <div className="lt-skeleton-pair">
-                {[0, 1].map((i) => (
-                  <Card key={i}>
-                    <div className="lt-skeleton lt-skeleton--short" />
-                    <div className="lt-skeleton lt-skeleton--tiny" />
-                  </Card>
-                ))}
-              </div>
-            </>
-          ) : (
-            [0, 1].map((i) => (
-              <Card key={i}>
-                <div className="lt-skeleton lt-skeleton--short" />
-                <div className="lt-skeleton lt-skeleton--medium" />
-                <div className="lt-skeleton lt-skeleton--button" />
-              </Card>
-            ))
-          )}
-        </div>
+        <MissionSkeletons places={route === 'location-loading'} />
       </Page>
     )
   else if (route === 'recommendations' || route === 'alternatives') {

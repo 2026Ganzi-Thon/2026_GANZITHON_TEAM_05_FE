@@ -3,11 +3,33 @@ import { shortDate, successCounts } from '@/features/outings/history'
 import type { OutingRecord } from '@/features/outings/types'
 import { cn } from '@/utils/cn'
 
-export default function MissionStats({ records }: { records: OutingRecord[] }) {
+export interface MissionStatistics {
+  first: { title: string; date: string } | null
+  latest: { title: string; date: string } | null
+  counts: number[]
+}
+export default function MissionStats({
+  records,
+  statistics,
+}: {
+  records: OutingRecord[]
+  statistics?: MissionStatistics
+}) {
   const sorted = [...records].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-  const first = sorted[0],
-    last = sorted.at(-1)
-  const counts = successCounts(records),
+  const first = statistics
+      ? statistics.first
+      : sorted[0]
+        ? { title: sorted[0].title, date: sorted[0].startedAt ?? sorted[0].createdAt }
+        : null,
+    last = statistics
+      ? statistics.latest
+      : sorted.at(-1)
+        ? {
+            title: sorted.at(-1)!.title,
+            date: sorted.at(-1)!.startedAt ?? sorted.at(-1)!.createdAt,
+          }
+        : null
+  const counts = statistics?.counts ?? successCounts(records),
     max = Math.max(...counts)
   return (
     <>
@@ -16,8 +38,8 @@ export default function MissionStats({ records }: { records: OutingRecord[] }) {
           <InfoRows
             spacious
             rows={[
-              [shortDate(first.startedAt ?? first.createdAt), first.title],
-              [shortDate(last.startedAt ?? last.createdAt), last.title],
+              [shortDate(first.date), first.title],
+              [shortDate(last.date), last.title],
             ]}
           />
         ) : (

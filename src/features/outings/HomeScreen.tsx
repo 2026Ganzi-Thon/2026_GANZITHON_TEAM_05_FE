@@ -10,6 +10,8 @@ import { Button, Card, InfoRows } from './components'
 import { dailyStatuses, longDate, resumableMissions, shortDate } from './history'
 import { missionById } from './mockData'
 import type { MockState, SavedMission } from './types'
+import type { DayStatus } from './history'
+import type { MissionStatistics } from '@/components/ui/MissionStats'
 
 export function HomeScreen({
   state,
@@ -18,6 +20,7 @@ export function HomeScreen({
   onRest,
   onStop,
   onNavigateExternal,
+  dashboard,
 }: {
   state: MockState
   onStart: () => void
@@ -25,6 +28,13 @@ export function HomeScreen({
   onRest: () => void
   onStop: (saved: SavedMission) => void
   onNavigateExternal: (destination: 'collection' | 'reflection') => void
+  dashboard?: {
+    month: string
+    statuses: Record<string, DayStatus>
+    completed: number
+    statistics: MissionStatistics
+    onMonthChange: (month: string) => void
+  }
 }) {
   const ownedFlowers = useCollectionStore((store) => store.owned)
   const recentFlowers = ownedFlowers.slice(-3)
@@ -91,13 +101,13 @@ export function HomeScreen({
               <Card
                 key={mission.id}
                 title="이전에 하던 미션이 있어요"
-                description={missionById(mission.missionId).title}
+                description={mission.title ?? missionById(mission.missionId).title}
               >
                 <InfoRows
                   rows={[
                     ['시작일', shortDate(mission.startedAt)],
-                    ['완료한 단계', `${mission.checked.length}개`],
-                    ['남은 단계', `${5 - mission.checked.length}개`],
+                    ['완료한 단계', `${mission.completedCount ?? mission.checked.length}개`],
+                    ['남은 단계', `${mission.remainingCount ?? 5 - mission.checked.length}개`],
                   ]}
                 />
                 <div className="lt-button-stack">
@@ -114,10 +124,10 @@ export function HomeScreen({
             <h2 className="lt-section-title lt-trim">나의 도감</h2>
             {recentFlowers.length ? (
               <div className="lt-flower-row">
-                {recentFlowers.map(({ id }) => (
+                {recentFlowers.map(({ id, name }) => (
                   <figure key={id}>
-                    <FlowerIcon id={id} owned />
-                    <figcaption className="lt-trim">{FLOWERS[id - 1].name}</figcaption>
+                    <FlowerIcon id={id} owned name={name} />
+                    <figcaption className="lt-trim">{name ?? FLOWERS[id - 1].name}</figcaption>
                   </figure>
                 ))}
               </div>
@@ -134,12 +144,19 @@ export function HomeScreen({
           <section className="lt-home-section" id="lt-reflection">
             <h2 className="lt-section-title lt-trim">성찰</h2>
             <Card
-              title={`${Number(month.slice(5))}월 한 달 동안\n${completed}번의 미션을 성공했어요!`}
+              title={`${Number(month.slice(5))}월 한 달 동안\n${dashboard?.completed ?? completed}번의 미션을 성공했어요!`}
               className="lt-calendar-card"
             >
-              <MissionCalendar statuses={dailyStatuses(state)} onMonthChange={setMonth} />
+              <MissionCalendar
+                month={dashboard?.month}
+                statuses={dashboard?.statuses ?? dailyStatuses(state)}
+                onMonthChange={(next) => {
+                  setMonth(next)
+                  dashboard?.onMonthChange(next)
+                }}
+              />
             </Card>
-            <MissionStats records={state.records} />
+            <MissionStats records={state.records} statistics={dashboard?.statistics} />
             <Button onClick={() => onNavigateExternal('reflection')}>자세히 보기</Button>
           </section>
         </div>

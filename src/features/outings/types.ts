@@ -40,6 +40,9 @@ export interface Mission {
   placeType?: 'store' | 'park' | 'cafe'
 }
 export interface SavedMission {
+  title?: string
+  completedCount?: number
+  remainingCount?: number
   id: string
   missionId: string
   checked: number[]

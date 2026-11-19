@@ -9,6 +9,9 @@ import FieldMessage from '@/pages/onboarding/components/FieldMessage'
 import { useAuthStore } from '@/stores/authStore'
 import { useUserDefaultsStore } from '@/stores/userDefaultsStore'
 import { MOCK_USER_DEFAULTS } from '@/mocks/data'
+import { isApiEnabled } from '@/api/config'
+import { authApi } from '@/api/endpoints'
+import { apiErrorMessage } from '@/api/errors'
 
 const FORM_ID = 'login-form'
 
@@ -20,25 +23,39 @@ export default function LoginPage() {
   const [id, setId] = useState('')
   const [password, setPassword] = useState('')
   const [failed, setFailed] = useState(false)
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState('')
 
   const canSubmit = id.trim() !== '' && password !== ''
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!canSubmit) return
-    if (!login(id.trim(), password)) {
-      setFailed(true)
-      return
+    if (!canSubmit || pending) return
+    setError('')
+    setPending(true)
+    try {
+      if (isApiEnabled) {
+        useAuthStore.getState().setSession(await authApi.login(id.trim(), password))
+      } else {
+        if (!login(id.trim(), password)) {
+          setFailed(true)
+          return
+        }
+        useUserDefaultsStore.getState().setDefaults(MOCK_USER_DEFAULTS)
+      }
+      navigate(PATHS.HOME, { replace: true })
+    } catch (error) {
+      setError(apiErrorMessage(error))
+    } finally {
+      setPending(false)
     }
-    useUserDefaultsStore.getState().setDefaults(MOCK_USER_DEFAULTS)
-    navigate(PATHS.HOME, { replace: true })
   }
 
   return (
     <Screen
       bottom={
-        <Button type="submit" form={FORM_ID} disabled={!canSubmit}>
-          시작하기
+        <Button type="submit" form={FORM_ID} disabled={!canSubmit || pending}>
+          {pending ? '로그인하는 중이에요' : '시작하기'}
         </Button>
       }
     >
@@ -72,6 +89,7 @@ export default function LoginPage() {
           autoComplete="current-password"
         />
         {failed && <FieldMessage>아이디 또는 비밀번호를 다시 확인해 주세요</FieldMessage>}
+        {error && <FieldMessage>{error}</FieldMessage>}
       </form>
     </Screen>
   )
