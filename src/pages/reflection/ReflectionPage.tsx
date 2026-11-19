@@ -23,7 +23,7 @@ function ApiReflectionPage() {
   const [month, setMonth] = useState(todayString().slice(0, 7))
   const { summary, calendar } = useReflectionQueries(month)
   const error = summary.error ?? calendar.error
-  const loading = summary.isPending || calendar.isPending
+  // 응답을 기다리는 동안은 달력·통계 자리 표시만 두고, 오류일 때만 재시도 카드를 보여 준다.
   return (
     <ReflectionView
       month={month}
@@ -31,9 +31,8 @@ function ApiReflectionPage() {
       statuses={calendarStatuses(calendar.data)}
       counts={calendar.data ? calendarDayCounts(calendar.data) : undefined}
       feedback={
-        loading || error ? (
+        error ? (
           <ApiFeedback
-            loading={loading && !error}
             error={error}
             onRetry={() => {
               void summary.refetch()
@@ -100,7 +99,9 @@ function ReflectionView({
           ].map(([label, status]) => (
             <div key={status}>
               <dt className="lt-trim">{label}</dt>
-              <dd className="lt-trim">{counts ? counts[status as keyof typeof counts] : '—'}일</dd>
+              <dd className="lt-trim">
+                {counts ? `${counts[status as keyof typeof counts]}일` : '–'}
+              </dd>
             </div>
           ))}
         </dl>

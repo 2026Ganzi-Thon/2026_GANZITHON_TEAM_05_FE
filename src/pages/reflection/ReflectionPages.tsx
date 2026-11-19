@@ -170,7 +170,8 @@ export function HelpPage() {
           </div>
           <a
             className="lt-button lt-button--danger lt-trim"
-            href="tel:+82109?oai_link_source=model_response_hotline"
+            href="tel:109"
+            aria-label="자살예방상담전화 109 전화하기"
           >
             109 전화하기
           </a>
