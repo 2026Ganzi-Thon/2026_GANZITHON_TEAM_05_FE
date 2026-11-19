@@ -26,7 +26,7 @@ interface ApiMissionState {
   fallback: boolean
   alternativeTurn: number
   createdRecommendationId: string | null
-  reset: () => void
+  reset: (options?: { preserveLocationConsent?: boolean }) => void
 }
 const initial = () => ({
   recommendations: [],
@@ -54,5 +54,9 @@ const initial = () => ({
 })
 export const useApiMissionStore = create<ApiMissionState>((set) => ({
   ...initial(),
-  reset: () => set(initial()),
+  reset: (options) =>
+    set((state) => ({
+      ...initial(),
+      locationConsent: options?.preserveLocationConsent ? state.locationConsent : false,
+    })),
 }))

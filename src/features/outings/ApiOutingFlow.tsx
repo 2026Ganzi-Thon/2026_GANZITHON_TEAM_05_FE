@@ -16,7 +16,7 @@ import {
   useResumableQuery,
 } from '@/api/queries'
 import { invalidateApiData, queryClient } from '@/lib/queryClient'
-import { requestCurrentPosition } from '@/lib/kakaoMaps'
+import { canSkipLocationConsent, requestCurrentPosition } from '@/lib/kakaoMaps'
 import { todayString } from '@/utils/date'
 import { PATHS } from '@/constants/paths'
 import BottomNav from '@/components/layout/BottomNav'
@@ -239,7 +239,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
       ...state,
       conditions: { ...(state.lastConditions ?? emptyConditions), mood: null, barriers: [] },
     })
-    api.reset()
+    api.reset({ preserveLocationConsent: true })
     go('conditions-1')
   }
   function back() {
@@ -440,6 +440,13 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
     void invalidateApiData()
     go(replacing || recommendation.missionType === 'non_place' ? 'active' : 'detail')
   }
+  async function openPlaceSearch() {
+    const consented = await canSkipLocationConsent(useApiMissionStore.getState().locationConsent)
+    if (consented) {
+      useApiMissionStore.setState({ locationConsent: true })
+      go('location-loading')
+    } else setModal('location')
+  }
   function selectRecommendation(recommendation: Recommendation) {
     const current = useApiMissionStore.getState()
     useApiMissionStore.setState({
@@ -454,7 +461,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
       selectedPlaceId: null,
       review: { ...emptyReview },
     })
-    if (recommendation.missionType === 'place') setModal('location')
+    if (recommendation.missionType === 'place') void run(openPlaceSearch)
     else void run(() => createSelected(recommendation, null))
   }
   async function saveProgress() {
@@ -526,7 +533,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
     }
     if (modal === 'stop' && stopTarget) {
       await missionsApi.abandon(stopTarget.missionId)
-      if (mission?.missionId === stopTarget.missionId) api.reset()
+      if (mission?.missionId === stopTarget.missionId) api.reset({ preserveLocationConsent: true })
       await invalidateApiData()
       go('home')
     }
@@ -541,7 +548,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
         (!mission?.place || candidate.placeCategory !== mission.placeCategory)
       ) {
         useApiMissionStore.setState({ places: [], selectedPlaceId: null })
-        setModal('location')
+        await openPlaceSearch()
       } else
         await createSelected(
           candidate,
