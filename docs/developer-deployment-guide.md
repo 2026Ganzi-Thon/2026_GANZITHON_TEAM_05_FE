@@ -9,10 +9,10 @@
 | 프런트 저장소         | [2026_GANZITHON_TEAM_05_FE](https://github.com/2026Ganzi-Thon/2026_GANZITHON_TEAM_05_FE) |
 | 백엔드 저장소         | [2026_GANZITHON_TEAM_05_BE](https://github.com/2026Ganzi-Thon/2026_GANZITHON_TEAM_05_BE) |
 | 프런트 배포           | [https://letit.vercel.app](https://letit.vercel.app), Vercel                             |
-| 백엔드 배포 주소      | 아직 공유되지 않음. 담당자가 배포한 HTTPS 주소를 받아 설정                               |
+| 백엔드 배포 주소      | `https://letit-backend.onrender.com` (Render)                                            |
 | 프런트 main           | API 연결, 카카오맵, 위치 동의 재사용, PWA 설치 기능 포함                                 |
 | 백엔드 main           | PR #1·#2 병합 완료. 인증·미션·장소·성찰·도감 라우터 포함                                 |
-| 현재 공유 웹의 데이터 | 작성 시점에는 백엔드 주소 미설정으로 메모리 목업 모드                                    |
+| 현재 공유 웹의 데이터 | 운영·미리보기 모두 위 백엔드에 연결된 API 모드. 미리보기 주소는 백엔드 CORS 추가 필요    |
 | AI 검증               | 기존 로컬 통합 검증은 서버 예비 추천 사용. 실제 Upstage 호출은 별도 확인 필요            |
 
 프런트만 클론하면 개인 `.env.local`, 지도 키, 실행 중인 API 서버, 로컬 DB는 따라오지 않습니다. 기존 작업자의 `8001` 서버와 `로컬 통합 미리보기.cmd`는 개인 작업 환경이며 새 클론의 기본 실행 조건이 아닙니다.
@@ -382,15 +382,15 @@ npm run format:check
 
 실제 비밀값은 안전한 팀 채널로 전달하고 Git 문서에는 아래의 위치·담당자·상태만 갱신합니다.
 
-| 항목                                | 현재 전달 상태                           |
-| ----------------------------------- | ---------------------------------------- |
-| 프런트 운영 주소                    | `https://letit.vercel.app`               |
-| 백엔드 HTTPS 주소·Swagger           | 배포 담당자가 확정 후 공유               |
-| Vercel 프로젝트·권한                | 프로젝트 관리자에게 요청                 |
-| Kakao Developers 팀 앱·키 관리 권한 | 앱 관리자에게 요청                       |
-| JavaScript 키·REST 키 전달 경로     | 앱 관리자가 별도 공유                    |
-| Upstage 키·모델 접근 상태           | 백엔드 담당자가 확인                     |
-| 운영/스테이징 DB·백업 담당자        | 백엔드 담당자가 확정                     |
-| CORS·SDK 허용 도메인 목록           | 실제 개발·운영·미리보기 주소로 각각 갱신 |
+| 항목                                | 현재 전달 상태                            |
+| ----------------------------------- | ----------------------------------------- |
+| 프런트 운영 주소                    | `https://letit.vercel.app`                |
+| 백엔드 HTTPS 주소·Swagger           | `https://letit-backend.onrender.com/docs` |
+| Vercel 프로젝트·권한                | 프로젝트 관리자에게 요청                  |
+| Kakao Developers 팀 앱·키 관리 권한 | 앱 관리자에게 요청                        |
+| JavaScript 키·REST 키 전달 경로     | 앱 관리자가 별도 공유                     |
+| Upstage 키·모델 접근 상태           | 백엔드 담당자가 확인                      |
+| 운영/스테이징 DB·백업 담당자        | 백엔드 담당자가 확정                      |
+| CORS·SDK 허용 도메인 목록           | 실제 개발·운영·미리보기 주소로 각각 갱신  |
 
 서버 주소, 배포 방식 또는 저장 정책이 바뀌면 이 문서와 [API 연동 상태](api-integration.md), [README](../README.md)를 같이 갱신합니다.
