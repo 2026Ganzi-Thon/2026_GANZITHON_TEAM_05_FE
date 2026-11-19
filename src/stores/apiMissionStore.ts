@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { ApiPlace, MissionDetail, Recommendation } from '@/api/contracts'
 import type { ReviewDraft } from '@/features/outings/types'
+import type { Coordinates } from '@/lib/kakaoMaps'
 
 interface ApiMissionState {
   recommendations: Recommendation[]
@@ -11,7 +12,8 @@ interface ApiMissionState {
   checkedStepIds: string[]
   places: ApiPlace[]
   selectedPlaceId: string | null
-  position: { lat: number; lng: number } | null
+  position: Coordinates | null
+  searchRadiusMeters: number | null
   selectionMode: 'new' | 'replace'
   problem: string
   review: ReviewDraft
@@ -36,6 +38,7 @@ const initial = () => ({
   places: [],
   selectedPlaceId: null,
   position: null,
+  searchRadiusMeters: null,
   selectionMode: 'new' as const,
   problem: '눈/비가 와요',
   review: { mood: null, note: '', retry: '', good: '' },

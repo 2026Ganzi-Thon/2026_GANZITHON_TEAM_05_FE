@@ -180,6 +180,10 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
   const places = useMemo(() => api.places.map(toPlace), [api.places])
   const selected =
     api.places.find((place) => place.placeId === api.selectedPlaceId) ?? api.places[0]
+  const radiusMeters =
+    api.searchRadiusMeters ?? searchRadius(toApiConditions(conditions, defaults ?? undefined))
+  const radiusLabel = `${radiusMeters.toLocaleString('ko-KR')}m`
+  const approximatePosition = (api.position?.accuracy ?? 0) > radiusMeters
   const activePlace = useMemo(() => (mission?.place ? toPlace(mission.place) : null), [mission])
   const pageProps = { nodeId: nodes[route] ?? '72:8925', onBack: () => back() }
 
@@ -334,11 +338,13 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
             userId,
             'places',
             state.selectedRecommendation.recommendationId,
+            state.selectedRecommendation.placeCategory,
+            searchRadius(selectedConditions),
             state.searchAttempt,
             retry,
           ],
           queryFn: async () => {
-            const position = state.position ?? (await requestCurrentPosition())
+            const position = await requestCurrentPosition()
             const response = await placesApi.nearby(
               position.lat,
               position.lng,
@@ -347,12 +353,13 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
             )
             return { ...response, position }
           },
-          staleTime: 5 * 60 * 1000,
+          staleTime: 0,
           retry: false,
         })
         if (disposed) return
         useApiMissionStore.setState({
           position: response.position,
+          searchRadiusMeters: response.searchRadiusMeters,
           places: response.items,
           selectedPlaceId: response.items[0]?.placeId ?? null,
         })
@@ -443,6 +450,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
           ? current.pendingMissionId
           : null,
       places: [],
+      searchRadiusMeters: null,
       selectedPlaceId: null,
       review: { ...emptyReview },
     })
@@ -797,12 +805,22 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
         <Heading eyebrow={api.selectedRecommendation?.title} title="이 미션, 어디에서 해볼까요?" />
         {!places.length ? (
           <ApiFeedback
-            title="조건에 맞는 장소가 없어요"
+            title={`반경 ${radiusLabel} 안에서 장소를 찾지 못했어요`}
             onRetry={() => {
               useApiMissionStore.setState({ searchAttempt: api.searchAttempt + 1 })
               go('location-loading')
             }}
           >
+            <p className="lt-place-search-info">
+              에너지 단계에 맞춘 검색 범위예요. 더 멀리 갈 수 있다면 외출 조건을 바꿔 주세요.
+              {approximatePosition &&
+                ' 기기의 위치 오차가 검색 반경보다 커요. 위치를 다시 확인해 주세요.'}
+            </p>
+            {api.selectionMode === 'new' && (
+              <Button variant="secondary" onClick={() => go('conditions-1')}>
+                외출 조건 바꾸기
+              </Button>
+            )}
             <Button
               variant="secondary"
               onClick={() => go(api.selectionMode === 'replace' ? 'active' : 'recommendations')}
@@ -841,6 +859,21 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
                 onSelect={(selectedPlaceId) => useApiMissionStore.setState({ selectedPlaceId })}
                 currentPosition={api.position}
               />
+              <div className="lt-place-search-info">
+                <p>현재 위치에서 반경 {radiusLabel} 안의 장소예요.</p>
+                {approximatePosition && (
+                  <p>기기의 위치 오차가 검색 반경보다 커요. 위치를 다시 확인해 주세요.</p>
+                )}
+                <Button
+                  variant="text"
+                  onClick={() => {
+                    useApiMissionStore.setState({ searchAttempt: api.searchAttempt + 1 })
+                    go('location-loading')
+                  }}
+                >
+                  현재 위치로 다시 찾기
+                </Button>
+              </div>
             </div>
             <section className="lt-body lt-place-picker">
               <h2 className="lt-section-title lt-trim">장소를 선택해주세요</h2>

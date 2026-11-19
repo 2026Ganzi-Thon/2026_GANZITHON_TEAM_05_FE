@@ -20,6 +20,8 @@ export default function OutingMap({
 }) {
   const container = useRef<HTMLDivElement>(null)
   const pins = useRef(new Map<string, HTMLButtonElement>())
+  const boundsRef = useRef<unknown>(null)
+  const previousSelection = useRef(selectedPlaceId)
   const onSelectRef = useRef(onSelect)
   const [attempt, setAttempt] = useState(0)
   const [error, setError] = useState(false)
@@ -55,7 +57,10 @@ export default function OutingMap({
         if (disposed) return
         const first = locationsRef.current[0].coordinates!
         const map = new sdk.Map(target, { center: new sdk.LatLng(first.lat, first.lng), level: 4 })
-        observer = new ResizeObserver(() => map.relayout())
+        observer = new ResizeObserver(() => {
+          map.relayout()
+          if (boundsRef.current) map.setBounds(boundsRef.current, 35, 35, 35, 35)
+        })
         observer.observe(target)
         setReady(map)
         setError(false)
@@ -67,6 +72,7 @@ export default function OutingMap({
       disposed = true
       observer?.disconnect()
       target.replaceChildren()
+      boundsRef.current = null
       setReady(null)
     }
   }, [usable, attempt])
@@ -104,6 +110,7 @@ export default function OutingMap({
         new sdk.CustomOverlay({ position: point, content: marker, map: ready, zIndex: 3 }),
       )
     }
+    boundsRef.current = bounds
     ready.setBounds(bounds, 35, 35, 35, 35)
     return () => {
       overlays.forEach((overlay) => overlay.setMap(null))
@@ -116,8 +123,14 @@ export default function OutingMap({
       pin.setAttribute('aria-pressed', String(id === selectedPlaceId))
     }
     const place = locations.find((place) => place.id === selectedPlaceId)
-    if (ready && place?.coordinates && window.kakao?.maps)
+    if (
+      previousSelection.current !== selectedPlaceId &&
+      ready &&
+      place?.coordinates &&
+      window.kakao?.maps
+    )
       ready.panTo(new window.kakao.maps.LatLng(place.coordinates.lat, place.coordinates.lng))
+    previousSelection.current = selectedPlaceId
   }, [ready, locations, selectedPlaceId, locationKey, currentPosition])
   return (
     <div className={`lt-map ${park ? 'lt-map--park' : ''}`} aria-label="미션 장소 지도">

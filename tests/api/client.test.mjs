@@ -28,6 +28,52 @@ after(async () => {
   delete process.env.VITE_API_BASE_URL
   await server?.close()
 })
+
+test('위치를 새로 요청하고 정확도와 고정밀·캐시 금지 옵션을 전달한다', async () => {
+  const { requestCurrentPosition } = await server.ssrLoadModule('/src/lib/kakaoMaps.ts')
+  const original = Object.getOwnPropertyDescriptor(navigator, 'geolocation')
+  let calls = 0
+  Object.defineProperty(navigator, 'geolocation', {
+    configurable: true,
+    value: {
+      getCurrentPosition(success, _error, options) {
+        assert.equal(options.maximumAge, 0)
+        assert.equal(options.enableHighAccuracy, true)
+        calls++
+        success({ coords: { latitude: 37 + calls / 100, longitude: 127, accuracy: 80 } })
+      },
+    },
+  })
+  try {
+    const first = await requestCurrentPosition()
+    const second = await requestCurrentPosition()
+    assert.equal(calls, 2)
+    assert.notEqual(first.lat, second.lat)
+    assert.equal(second.accuracy, 80)
+  } finally {
+    if (original) Object.defineProperty(navigator, 'geolocation', original)
+    else delete navigator.geolocation
+  }
+})
+
+test('위치 권한 거부 시 이전 좌표로 성공 처리하지 않는다', async () => {
+  const { requestCurrentPosition } = await server.ssrLoadModule('/src/lib/kakaoMaps.ts')
+  const original = Object.getOwnPropertyDescriptor(navigator, 'geolocation')
+  Object.defineProperty(navigator, 'geolocation', {
+    configurable: true,
+    value: {
+      getCurrentPosition(_success, reject) {
+        reject({ code: 1 })
+      },
+    },
+  })
+  try {
+    await assert.rejects(requestCurrentPosition(), /위치 사용이 허용되지 않았어요/)
+  } finally {
+    if (original) Object.defineProperty(navigator, 'geolocation', original)
+    else delete navigator.geolocation
+  }
+})
 const json = (value, status = 200) =>
   new Response(JSON.stringify(value), { status, headers: { 'Content-Type': 'application/json' } })
 test('26개 API의 메서드·경로·인증·요청 필드가 명세와 일치한다', async () => {

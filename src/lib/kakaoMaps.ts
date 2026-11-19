@@ -1,6 +1,7 @@
 export interface Coordinates {
   lat: number
   lng: number
+  accuracy?: number
 }
 export interface KakaoLatLng {
   getLat: () => number
@@ -73,7 +74,8 @@ export function requestCurrentPosition(): Promise<Coordinates> {
     )
   return new Promise((resolve, reject) =>
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => resolve({ lat: coords.latitude, lng: coords.longitude }),
+      ({ coords }) =>
+        resolve({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy }),
       (error) =>
         reject(
           new Error(
@@ -82,7 +84,7 @@ export function requestCurrentPosition(): Promise<Coordinates> {
               : '현재 위치를 확인하지 못했어요. 다시 시도해 주세요.',
           ),
         ),
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     ),
   )
 }
