@@ -181,9 +181,16 @@ test('26개 API의 메서드·경로·인증·요청 필드가 명세와 일치�
     [
       'POST',
       '/missions',
-      { recommendationId: uuid(101), placeId: null },
+      { recommendationId: uuid(101), placeId: null, place: null },
       { missionId: mid },
       () => endpoints.missionsApi.create(uuid(101), null),
+    ],
+    [
+      'POST',
+      '/missions',
+      { recommendationId: uuid(101), placeId: '12345', place },
+      { missionId: mid },
+      () => endpoints.missionsApi.create(uuid(101), { ...place, category: 'park' }),
     ],
     ['GET', `/missions/${mid}`, undefined, detail, () => endpoints.missionsApi.detail(mid)],
     [
@@ -238,9 +245,16 @@ test('26개 API의 메서드·경로·인증·요청 필드가 명세와 일치�
     [
       'POST',
       `/missions/${mid}/replace`,
-      { recommendationId: uuid(102), placeId: '12345' },
+      { recommendationId: uuid(102), placeId: '12345', place },
       { oldMissionId: mid, newMissionId: uuid(2) },
-      () => endpoints.missionsApi.replace(mid, uuid(102), '12345'),
+      () => endpoints.missionsApi.replace(mid, uuid(102), place),
+    ],
+    [
+      'POST',
+      `/missions/${mid}/replace`,
+      { recommendationId: uuid(102), placeId: '12345', place: null },
+      { oldMissionId: mid, newMissionId: uuid(2) },
+      () => endpoints.missionsApi.replace(mid, uuid(102), { placeId: '12345', name: null }),
     ],
     [
       'GET',

@@ -6,7 +6,7 @@ import { useUserDefaultsStore } from '@/stores/userDefaultsStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useCollectionStore } from '@/stores/collectionStore'
 import { missionsApi, placesApi, reflectionApi } from '@/api/endpoints'
-import type { MissionDetail, Recommendation, ResumableMission } from '@/api/contracts'
+import type { MissionDetail, MissionPlace, Recommendation, ResumableMission } from '@/api/contracts'
 import { sortedSteps, toApiConditions, toMission, toPlace, searchRadius } from '@/api/presentation'
 import { calendarStatuses, progressStatistics, resumableView } from '@/api/dashboard'
 import {
@@ -396,9 +396,10 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
 
   async function createSelected(
     recommendation: Recommendation,
-    placeId: string | null,
+    place: MissionPlace | null,
     replacing = false,
   ) {
+    const placeId = place?.placeId ?? null
     const current = useApiMissionStore.getState()
     let missionId = current.pendingMissionId
     if (!missionId) {
@@ -408,7 +409,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
           await missionsApi.replace(
             current.mission.missionId,
             recommendation.recommendationId,
-            placeId,
+            place,
           )
         ).newMissionId
       } else {
@@ -422,7 +423,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
           }
           await missionsApi.abandon(current.mission.missionId)
         }
-        missionId = (await missionsApi.create(recommendation.recommendationId, placeId)).missionId
+        missionId = (await missionsApi.create(recommendation.recommendationId, place)).missionId
       }
       useApiMissionStore.setState({ pendingMissionId: missionId, mission: null })
     }
@@ -547,7 +548,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
       } else
         await createSelected(
           candidate,
-          candidate.missionType === 'place' ? (mission?.place?.placeId ?? null) : null,
+          candidate.missionType === 'place' ? (mission?.place ?? null) : null,
           true,
         )
     }
@@ -792,7 +793,7 @@ export default function ApiOutingFlow({ screen: route }: { screen: Screen }) {
                   void run(() =>
                     createSelected(
                       api.selectedRecommendation!,
-                      selected.placeId,
+                      selected,
                       api.selectionMode === 'replace',
                     ),
                   )

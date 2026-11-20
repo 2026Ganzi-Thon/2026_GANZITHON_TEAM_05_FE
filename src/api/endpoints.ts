@@ -21,6 +21,7 @@ import type {
   ClaimResponse,
   CollectionResponse,
   MissionDetail,
+  MissionPlace,
   MissionProgress,
   RecommendationsResponse,
   ResumableMissionResponse,
@@ -62,6 +63,28 @@ export const defaultsApi = {
       validateDefaults,
     ),
 }
+/** 활동 기록에서 지도·주소·거리를 보여줄 수 있도록 고른 장소 정보를 미션과 함께 저장한다. */
+const missionPlaceBody = (place: MissionPlace | null) => {
+  if (!place) return { placeId: null, place: null }
+  const { placeId, name, address, latitude, longitude, distanceMeters, walkingMinutes } = place
+  const complete =
+    !!name && address != null && latitude != null && longitude != null && distanceMeters != null
+  return {
+    placeId,
+    // 이전 미션처럼 ID만 남은 장소는 상세 정보를 지어내지 않고 ID만 보낸다.
+    place: complete
+      ? {
+          placeId,
+          name,
+          address,
+          latitude,
+          longitude,
+          distanceMeters,
+          walkingMinutes: walkingMinutes ?? null,
+        }
+      : null,
+  }
+}
 const pendingSteps = new Map<string, Promise<MissionProgress>>()
 export const missionsApi = {
   recommendations: (
@@ -75,10 +98,10 @@ export const missionsApi = {
       signal,
       timeoutMs: 90000,
     }).then(validateRecommendations),
-  create: (recommendationId: string, placeId: string | null) =>
+  create: (recommendationId: string, place: MissionPlace | null) =>
     apiRequest<{ missionId: string }>('/missions', {
       method: 'POST',
-      body: { recommendationId, placeId },
+      body: { recommendationId, ...missionPlaceBody(place) },
     }).then(validateMissionId),
   detail: (missionId: string, signal?: AbortSignal) =>
     apiRequest<MissionDetail>(`/missions/${id(missionId)}`, { signal }).then(validateMission),
@@ -160,11 +183,11 @@ export const missionsApi = {
       signal,
       timeoutMs: 90000,
     }).then(validateRecommendations),
-  replace: async (missionId: string, recommendationId: string, placeId: string | null) => {
+  replace: async (missionId: string, recommendationId: string, place: MissionPlace | null) => {
     await pendingSteps.get(missionId)
     return apiRequest<{ oldMissionId: string; newMissionId: string }>(
       `/missions/${id(missionId)}/replace`,
-      { method: 'POST', body: { recommendationId, placeId } },
+      { method: 'POST', body: { recommendationId, ...missionPlaceBody(place) } },
     )
   },
   review: (missionId: string, review: ApiReview) =>
