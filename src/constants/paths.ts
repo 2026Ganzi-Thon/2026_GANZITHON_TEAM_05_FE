@@ -34,6 +34,8 @@ export const PATHS = {
   HOME: '/home',
   COLLECTION: '/collection', // 04 도감
   REFLECTION: '/reflection', // 03 성찰하기
+  MY: '/my', // 마이페이지
+  MY_DEFAULTS: '/my/defaults/:step', // 평소 외출 설정 변경 1~4
   ARCHIVE: '/reflection/archive',
   RECORD_DETAIL: '/reflection/archive/:recordId',
   CHANGES: '/reflection/changes',
@@ -42,4 +44,5 @@ export const PATHS = {
 
 /** 기본값 설문 n번째 장 경로 */
 export const surveyPath = (step: number) => `/onboarding/survey/${step}`
+export const myDefaultsPath = (step: number) => `/my/defaults/${step}`
 export const recordPath = (id: string) => `/reflection/archive/${encodeURIComponent(id)}`
