@@ -136,7 +136,10 @@ export function HomeScreen({
                 아직 얻은 꽃이 없어요. 미션 달성으로 꽃을 모아보세요.
               </p>
             )}
-            <Button variant="secondary" onClick={() => onNavigateExternal('collection')}>
+            <Button
+              variant={recentFlowers.length ? 'primary' : 'secondary'}
+              onClick={() => onNavigateExternal('collection')}
+            >
               도감에서 보기
             </Button>
           </section>
