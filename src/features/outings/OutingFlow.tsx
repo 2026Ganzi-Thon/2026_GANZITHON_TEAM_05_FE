@@ -424,6 +424,7 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
       <Button variant="secondary" onClick={() => advanceCondition(true)}>
         건너뛰기
       </Button>
+      <p className="lt-hint lt-skip-hint">건너뛴 항목들은 평소 설정을 기준으로 추천해 드려요</p>
     </Footer>
   )
   let screen
@@ -629,7 +630,7 @@ function MockOutingFlow({ screen: route }: OutingFlowProps) {
               ]}
             />
           </Card>
-          <p className="lt-hint lt-trim">기본값은 가입할 때 고른 값이에요.</p>
+          <p className="lt-hint lt-trim">기본값은 마이에서 평소 외출 설정으로 바꿀 수 있어요.</p>
         </div>
       </Page>
     )

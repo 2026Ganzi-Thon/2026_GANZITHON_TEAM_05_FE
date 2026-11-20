@@ -243,6 +243,11 @@
   color: var(--lt-soft);
   padding: 5px;
 }
+.lt-skip-hint {
+  margin-top: -5px;
+  padding: 0 5px;
+  text-align: center;
+}
 .lt-info-rows {
   padding: 5px;
   display: flex;
