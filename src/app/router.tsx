@@ -5,6 +5,8 @@ import { onboardingRoutes } from '@/app/routes/onboardingRoutes'
 import TabLayout from '@/components/layout/TabLayout'
 import { PATHS } from '@/constants/paths'
 import CollectionPage from '@/pages/collection/CollectionPage'
+import MyPage from '@/pages/my/MyPage'
+import SurveyPage from '@/pages/onboarding/SurveyPage'
 import OnboardingStartPage from '@/pages/onboarding/OnboardingStartPage'
 import ReflectionPage from '@/pages/reflection/ReflectionPage'
 import {
@@ -64,8 +66,10 @@ export const router = createBrowserRouter([
         children: [
           { path: PATHS.COLLECTION, element: <CollectionPage /> }, // 04 도감
           { path: PATHS.REFLECTION, element: <ReflectionPage /> }, // 03 성찰하기 · 기록 요약
+          { path: PATHS.MY, element: <MyPage /> }, // 마이페이지
         ],
       },
+      { path: PATHS.MY_DEFAULTS, element: <SurveyPage mode="edit" /> }, // 평소 외출 설정 변경
 
       // 01 미션 이어하기 · 외출 조건
       // 02 맞춤 미션 · 수행 · 외출 후기
